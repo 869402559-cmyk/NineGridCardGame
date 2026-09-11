@@ -12,6 +12,10 @@ func _ready() -> void:
 	btn_auto.pressed.connect(_on_auto_fill)
 	btn_clear.pressed.connect(_on_clear)
 	
+	# 设置左侧整个面板区域（LeftPanel）为显式下阵目标（精准接收拖回的单个卡牌）
+	var left_panel = $HBox/LeftPanel
+	left_panel.script = LeftPanelDropScript
+	
 	init_formation_slots()
 	refresh_all()
 
@@ -229,6 +233,27 @@ func _on_clear() -> void:
 		GameData.player_formation[pos] = null
 	refresh_all()
 
+# 内部类：左侧列表与面板区域（精确接收从右侧拖回的指定武将进行下阵）
+class LeftPanelDropScript extends Control:
+	func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
+		return typeof(data) == TYPE_DICTIONARY and data.get("type") == "hero_card" and data.get("from_slot", 0) > 0
+
+	func _drop_data(_at_position: Vector2, data: Variant) -> void:
+		var dragged_uuid = data.get("uuid") as String
+		var from_slot = data.get("from_slot", 0) as int
+		
+		# 仅将这个特定被拖拽的武将从原槽位移除（下阵）
+		if from_slot > 0 and GameData.player_formation[from_slot] == dragged_uuid:
+			GameData.player_formation[from_slot] = null
+			GameData.has_unsaved_changes = true
+			
+		var p_node: Node = self
+		while p_node:
+			if p_node.has_method("refresh_all"):
+				p_node.refresh_all()
+				break
+			p_node = p_node.get_parent()
+
 # 内部类：左侧列表武将卡片拖拽源
 class HeroCardScript extends PanelContainer:
 	func _get_drag_data(_at_position: Vector2) -> Variant:
@@ -295,16 +320,7 @@ class SlotCardScript extends PanelContainer:
 		GameData.has_unsaved_changes = true
 		_notify_refresh()
 
-	# 拖拽结束：如果未落地到其他槽位（即拖出阵型/拖到空白处），自动判定为下阵
-	func _notification(what: int) -> void:
-		if what == NOTIFICATION_DRAG_END:
-			if not is_drag_successful():
-				var pos = get_meta("slot_pos") as int
-				if GameData.player_formation[pos] != null:
-					GameData.player_formation[pos] = null
-					GameData.has_unsaved_changes = true
-					_notify_refresh()
-
+	# 移除过度敏感的 NOTIFICATION_DRAG_END 全清逻辑，只保留精确的目标放置下阵
 	func _notify_refresh() -> void:
 		var p_node: Node = self
 		while p_node:
