@@ -1,8 +1,8 @@
 extends ColorRect
 
-@onready var avatar_texture: TextureRect = $Panel/Margin/HBox/LeftBox/PortraitCard/VBox/AvatarTexture
-@onready var name_quality_lbl: Label = $Panel/Margin/HBox/LeftBox/PortraitCard/VBox/NameQualityLbl
-@onready var level_lbl: Label = $Panel/Margin/HBox/LeftBox/PortraitCard/VBox/LevelLbl
+@onready var avatar_texture: TextureRect = $Panel/Margin/HBox/LeftBox/PortraitCard/AvatarTexture
+@onready var name_quality_lbl: Label = $Panel/Margin/HBox/LeftBox/InfoSubBox/NameQualityLbl
+@onready var level_lbl: Label = $Panel/Margin/HBox/LeftBox/InfoSubBox/LevelLbl
 @onready var btn_upgrade: Button = $Panel/Margin/HBox/LeftBox/BtnUpgrade
 @onready var btn_close: Button = $Panel/Margin/HBox/RightBox/TitleBox/BtnClose
 @onready var info_text: RichTextLabel = $Panel/Margin/HBox/RightBox/Scroll/InfoText

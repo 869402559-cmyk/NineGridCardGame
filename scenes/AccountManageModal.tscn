@@ -43,6 +43,7 @@ layout_mode = 2
 [node name="TitleLbl" type="Label" parent="Panel/Margin/VBox/TitleBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.9, 0.6, 1)
 theme_override_font_sizes/font_size = 20
 text = "🧹 账号清理与管理"
 
@@ -53,7 +54,7 @@ text = "❌"
 
 [node name="HintLbl" type="Label" parent="Panel/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 13
 text = "点击【删除账号】将永久移除该账号的本地存档文件。"
 

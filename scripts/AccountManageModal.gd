@@ -25,7 +25,7 @@ func refresh_list() -> void:
 		name_lbl.text = " 👤 账号: " + un
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_lbl.add_theme_font_size_override("font_size", 16)
-		name_lbl.add_theme_color_override("font_color", Color(0.2, 0.15, 0.1))
+		name_lbl.add_theme_color_override("font_color", Color(0.95, 0.9, 0.8)) # 深色弹窗中的高亮米白色
 		name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		hbox.add_child(name_lbl)
 		
@@ -45,7 +45,7 @@ func refresh_list() -> void:
 		empty_lbl.text = "（当前暂无其他注册账号）"
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_lbl.add_theme_font_size_override("font_size", 16)
-		empty_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		empty_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 		account_list_container.add_child(empty_lbl)
 
 func _on_delete_account(username: String) -> void:
