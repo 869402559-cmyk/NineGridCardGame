@@ -558,7 +558,7 @@ func play_attack_sequence(attacker: BattleUnit, target: BattleUnit) -> void:
 				spawn_floating_text(atk_card.global_position + Vector2(20, -15), "擂鼓助威", Color(0.9, 0.8, 0.2))
 				spawn_floating_text(chosen.ui_card.global_position + Vector2(20, 10), "+35 士气", Color(1.0, 0.9, 0.2))
 			else:
-				spawn_floating_text(atk_card.global_position + Vector2(20, -15), "+10 士气", Color(1.0, 0.9, 0.2))
+				spawn_floating_text(atk_card.global_position + Vector2(20, -15), "擂鼓助威", Color(0.9, 0.8, 0.2))
 				
 			await tw_drum.finished
 			var reset_tw = create_tween().set_parallel(true)
@@ -648,7 +648,7 @@ func play_attack_sequence(attacker: BattleUnit, target: BattleUnit) -> void:
 	target.current_hp = max(0, target.current_hp - damage)
 	
 	spawn_floating_text(tgt_card.global_position + Vector2(25, -10), "-" + str(damage), Color(1.0, 0.25, 0.2))
-	spawn_floating_text(tgt_card.global_position + Vector2(25, 15), "+25 士气", Color(1.0, 0.8, 0.2))
+	# 移除普通受击与普攻的士气飘字，仅保留伤害数字，防止飘字过于杂乱
 	
 	# 受击方动画：上下剧烈震动
 	var tw_hit = create_tween()
