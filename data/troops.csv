@@ -1,0 +1,6 @@
+﻿id,name,type_name,atk,def,satk,sdef,evade_rate,atk_type,skill_name,skill_desc,anim_type,texture_path
+t_cavalry,虎豹骑,骑兵,180,90,220,90,0.10,单体攻击,铁骑奔袭,发动强势奔袭造成高额战法伤害并获得士气。,slash,res://assets/textures/hobaoqi_idle.png
+t_infantry,重装步兵,步兵,120,160,150,120,0.05,单体攻击,坚壁固守,重击敌方并凭借坚盾抵挡大量伤害。,stomp,
+t_archer,白马义从,弓兵,210,70,260,80,0.20,单体攻击,百步穿杨,神射手连箭突袭造成致命战法打击。,thrust,
+t_drummer,战场鼓手,鼓手,90,90,120,110,0.15,单体攻击,激昂鼓舞,击鼓助威使我方全队士气提升35点！,inspire,
+t_tactician,谋士法队,战法,100,60,320,140,0.08,单体攻击,神算火攻,召唤奇谋烈焰对敌方造成毁灭性战法伤害。,fire,

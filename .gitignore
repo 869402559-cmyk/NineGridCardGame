@@ -1,0 +1,12 @@
+# Godot 4+ ignores
+.godot/
+*.tmp
+*.log
+
+# Windows & OS ignores
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# User dynamic saves (local login/saves should not pollute git repo)
+.import/

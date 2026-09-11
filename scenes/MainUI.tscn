@@ -1,0 +1,124 @@
+[gd_scene load_steps=3 format=3 uid="uid://d1g2h3i4j5k6"]
+
+[ext_resource type="Script" path="res://scripts/MainUI.gd" id="1_main"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_clean"]
+
+[node name="MainUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.96, 0.93, 0.84, 1)
+
+[node name="TopBox" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 30.0
+offset_top = 15.0
+offset_right = -30.0
+offset_bottom = 75.0
+grow_horizontal = 2
+theme_override_constants/separation = 20
+
+[node name="Title" type="Label" parent="TopBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
+theme_override_font_sizes/font_size = 26
+text = "傲视天地"
+vertical_alignment = 1
+
+[node name="AccountLabel" type="Label" parent="TopBox"]
+name = "AccountLabel"
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.3, 0.15, 1)
+theme_override_font_sizes/font_size = 18
+text = "主公: admin"
+vertical_alignment = 1
+
+[node name="ResBox" type="HBoxContainer" parent="TopBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 20
+alignment = 2
+
+[node name="GoldLabel" type="Label" parent="TopBox/ResBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.55, 0.05, 1)
+theme_override_font_sizes/font_size = 18
+text = "💰 金币: 2000"
+vertical_alignment = 1
+
+[node name="ExpLabel" type="Label" parent="TopBox/ResBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.6, 0.9, 1)
+theme_override_font_sizes/font_size = 18
+text = "✨ 经验池: 1500"
+vertical_alignment = 1
+
+[node name="BtnSave" type="Button" parent="TopBox/ResBox"]
+custom_minimum_size = Vector2(110, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "💾 保存存档"
+
+[node name="BtnLogout" type="Button" parent="TopBox/ResBox"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🚪 退出"
+
+[node name="NavBox" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -75.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="BtnGacha" type="Button" parent="NavBox"]
+custom_minimum_size = Vector2(180, 55)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "招募 (抽卡)"
+
+[node name="BtnFormation" type="Button" parent="NavBox"]
+custom_minimum_size = Vector2(180, 55)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "阵型 (选将布阵)"
+
+[node name="BtnBattle" type="Button" parent="NavBox"]
+custom_minimum_size = Vector2(180, 55)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "出征 (对战电脑)"
+
+[node name="ContentPanel" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 80.0
+offset_right = -30.0
+offset_bottom = -85.0
+grow_horizontal = 2
+grow_vertical = 2

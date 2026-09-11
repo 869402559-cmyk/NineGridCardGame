@@ -1,0 +1,118 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1a2t3t4l5"]
+
+[ext_resource type="Script" path="res://scripts/BattleUI.gd" id="1_battle"]
+
+[node name="BattleUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_battle")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="TopControls" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="DiffLabel" type="Label" parent="VBox/TopControls"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "选择电脑难度:"
+
+[node name="DiffSelect" type="OptionButton" parent="VBox/TopControls"]
+custom_minimum_size = Vector2(140, 40)
+layout_mode = 2
+
+[node name="BtnStart" type="Button" parent="VBox/TopControls"]
+custom_minimum_size = Vector2(140, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "自动战斗"
+
+[node name="BtnSkip" type="Button" parent="VBox/TopControls"]
+custom_minimum_size = Vector2(140, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "跳过战斗"
+
+[node name="MainLayout" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 15
+
+[node name="BattleBoard" type="HBoxContainer" parent="VBox/MainLayout"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="PlayerGrid" type="GridContainer" parent="VBox/MainLayout/BattleBoard"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
+
+[node name="VsLabel" type="Label" parent="VBox/MainLayout/BattleBoard"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "VS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EnemyGrid" type="GridContainer" parent="VBox/MainLayout/BattleBoard"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
+
+[node name="LogPanel" type="VBoxContainer" parent="VBox/MainLayout"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="LogTitle" type="Label" parent="VBox/MainLayout/LogPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "📜 战斗日志战报:"
+
+[node name="LogScroll" type="ScrollContainer" parent="VBox/MainLayout/LogPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="LogText" type="RichTextLabel" parent="VBox/MainLayout/LogPanel/LogScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = "点击【自动战斗】观看完整对决，或点击【跳过战斗】瞬间模拟战果！"
+
+[node name="FxLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

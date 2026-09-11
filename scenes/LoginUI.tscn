@@ -1,0 +1,109 @@
+[gd_scene load_steps=2 format=3 uid="uid://l1o2g3i4n5"]
+
+[ext_resource type="Script" path="res://scripts/LoginUI.gd" id="1_login"]
+
+[node name="LoginUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_login")
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.96, 0.93, 0.84, 1)
+
+[node name="CenterBox" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(400, 360)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -180.0
+offset_right = 200.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="CenterBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 25
+
+[node name="VBox" type="VBoxContainer" parent="CenterBox/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterBox/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
+theme_override_font_sizes/font_size = 26
+text = "🎮 傲视天地 - 账号登录"
+horizontal_alignment = 1
+
+[node name="UserBox" type="HBoxContainer" parent="CenterBox/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterBox/Margin/VBox/UserBox"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "账号:"
+
+[node name="InputUser" type="LineEdit" parent="CenterBox/Margin/VBox/UserBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "admin"
+placeholder_text = "请输入账号"
+
+[node name="PassBox" type="HBoxContainer" parent="CenterBox/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterBox/Margin/VBox/PassBox"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "密码:"
+
+[node name="InputPass" type="LineEdit" parent="CenterBox/Margin/VBox/PassBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+secret = true
+text = "123456"
+placeholder_text = "请输入密码"
+
+[node name="BtnBox" type="HBoxContainer" parent="CenterBox/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="BtnLogin" type="Button" parent="CenterBox/Margin/VBox/BtnBox"]
+custom_minimum_size = Vector2(120, 42)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "进入游戏"
+
+[node name="BtnRegister" type="Button" parent="CenterBox/Margin/VBox/BtnBox"]
+custom_minimum_size = Vector2(120, 42)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "注册新账号"
+
+[node name="TipLabel" type="Label" parent="CenterBox/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = "默认账号: admin  密码: 123456"
+horizontal_alignment = 1
+autowrap_mode = 2

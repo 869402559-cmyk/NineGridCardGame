@@ -1,0 +1,5 @@
+﻿difficulty,pos_1,pos_2,pos_3,pos_4,pos_5,pos_6,pos_7,pos_8,pos_9,stat_mult
+Easy,h_14,h_15,h_12,h_13,h_11,,,,,0.8
+Normal,h_01,,h_07,,h_06,,h_09,h_04,,1.0
+Hard,h_01,h_05,,h_06,h_07,,,h_10,,1.25
+Nightmare,h_01,h_02,h_03,,h_05,,,h_07,,1.6
