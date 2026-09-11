@@ -12,10 +12,6 @@ func _ready() -> void:
 	btn_auto.pressed.connect(_on_auto_fill)
 	btn_clear.pressed.connect(_on_clear)
 	
-	# 设置左侧英雄列表 ScrollContainer 为拖拽下阵目标（拖到左侧任意位置即可下阵）
-	var hero_scroll = $HBox/LeftPanel/HeroScroll
-	hero_scroll.script = LeftPanelDropScript
-	
 	init_formation_slots()
 	refresh_all()
 
@@ -105,7 +101,7 @@ func refresh_left_hero_grid() -> void:
 # 创建左侧英雄 3:4 头像卡片 (支持拖拽与双击打开详情)
 func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 	var card = PanelContainer.new()
-	card.custom_minimum_size = Vector2(92, 122) # 兼容 4 列布局的尺寸
+	card.custom_minimum_size = Vector2(88, 118) # 适配 4 列容器
 	card.set_meta("hero_uuid", hero["uuid"])
 	card.script = HeroCardScript
 	
@@ -138,7 +134,7 @@ func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 	
 	# 武将大头像/立绘
 	var img = TextureRect.new()
-	img.custom_minimum_size = Vector2(55, 70)
+	img.custom_minimum_size = Vector2(50, 65)
 	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	img.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
