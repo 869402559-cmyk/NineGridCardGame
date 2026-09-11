@@ -79,6 +79,9 @@ func refresh_display() -> void:
 "
 	info_bbcode += "• 兵种基础: 攻击 " + str(troop.get("atk", 0)) + " | 防御 " + str(troop.get("def", 0)) + " | 战攻 " + str(troop.get("satk", 0)) + " | 战防 " + str(troop.get("sdef", 0)) + "
 "
+	if troop.get("target_type", "无") != "无":
+		info_bbcode += "• 兵种克制: [color=orange]对 " + str(troop.get("target_type", "")) + " 伤害 +" + str(int(troop.get("bonus_rate", 0.0) * 100)) + "%[/color]
+"
 	info_bbcode += "• 闪避率: [color=green]" + str(int(combined["evade_rate"] * 100)) + "%[/color] (固定只由兵种决定)
 "
 	info_bbcode += "• 攻击方式: " + combined["atk_type"] + "

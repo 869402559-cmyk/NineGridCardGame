@@ -121,7 +121,7 @@ func parse_troops_csv(file_path: String) -> void:
 				var val = parts[i]
 				if h in ["atk", "def", "satk", "sdef"]:
 					data[h] = val.to_int()
-				elif h == "evade_rate":
+				elif h == "evade_rate" or h == "bonus_rate":
 					data[h] = val.to_float()
 				else:
 					data[h] = val
@@ -403,6 +403,8 @@ func calc_combined_stats(hero: Dictionary) -> Dictionary:
 		"sdef": final_sdef,
 		"spd": hero.get("spd", 100),
 		"evade_rate": troop.get("evade_rate", 0.05),
+		"bonus_target": troop.get("bonus_target", "无"),
+		"bonus_rate": troop.get("bonus_rate", 0.0),
 		"troop_name": troop.get("name", "兵种"),
 		"troop_type": troop.get("type_name", "步兵"),
 		"atk_type": troop.get("atk_type", "单体攻击"),
