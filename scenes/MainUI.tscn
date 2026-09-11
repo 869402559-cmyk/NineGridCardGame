@@ -74,6 +74,12 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "💾 保存存档"
 
+[node name="BtnManageAcc" type="Button" parent="TopBox/ResBox"]
+custom_minimum_size = Vector2(110, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🧹 账号清理"
+
 [node name="BtnLogout" type="Button" parent="TopBox/ResBox"]
 custom_minimum_size = Vector2(90, 40)
 layout_mode = 2

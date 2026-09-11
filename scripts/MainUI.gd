@@ -4,6 +4,7 @@ extends Control
 @onready var exp_label: Label = $TopBox/ResBox/ExpLabel
 @onready var account_label: Label = $TopBox/AccountLabel
 @onready var btn_save: Button = $TopBox/ResBox/BtnSave
+@onready var btn_manage_acc: Button = $TopBox/ResBox/BtnManageAcc
 @onready var btn_logout: Button = $TopBox/ResBox/BtnLogout
 @onready var btn_gacha: Button = $NavBox/BtnGacha
 @onready var btn_formation: Button = $NavBox/BtnFormation
@@ -19,6 +20,8 @@ func _ready() -> void:
 	btn_formation.pressed.connect(_on_formation_pressed)
 	btn_battle.pressed.connect(_on_battle_pressed)
 	btn_save.pressed.connect(_on_save_pressed)
+	if btn_manage_acc:
+		btn_manage_acc.pressed.connect(_on_manage_acc_pressed)
 	btn_logout.pressed.connect(_on_logout_pressed)
 	
 	GameData.gold_changed.connect(update_resources)
@@ -35,6 +38,12 @@ func update_resources() -> void:
 
 func _on_save_pressed() -> void:
 	GameData.save_current_progress()
+
+func _on_manage_acc_pressed() -> void:
+	var modal_scene = load("res://scenes/AccountManageModal.tscn")
+	if modal_scene:
+		var modal = modal_scene.instantiate()
+		add_child(modal)
 
 func _on_save_status_changed(msg: String) -> void:
 	btn_save.text = "✅ 已保存"

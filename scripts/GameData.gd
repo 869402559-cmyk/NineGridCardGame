@@ -208,6 +208,16 @@ func load_all_accounts_data() -> Dictionary:
 		return json.get_data() as Dictionary
 	return {}
 
+func delete_account(username: String) -> String:
+	if username == "admin":
+		return "删除失败：默认管理员账号 admin 不允许删除！"
+	var accounts = load_all_accounts_data()
+	if not accounts.has(username):
+		return "删除失败：账号不存在！"
+	accounts.erase(username)
+	save_all_accounts_data(accounts)
+	return "OK"
+
 func save_all_accounts_data(accounts: Dictionary) -> void:
 	var file = FileAccess.open(ACCOUNTS_FILE, FileAccess.WRITE)
 	file.store_string(JSON.stringify(accounts, "	"))
@@ -274,6 +284,12 @@ func load_player_save_from_account(save_data: Dictionary) -> void:
 	var raw_heroes = save_data.get("heroes", [])
 	for h in raw_heroes:
 		var hero = (h as Dictionary).duplicate(true)
+		
+		# 自动刷更新：如果 CSV 表里的品质、名称、属性有更新，自动同步模板的最新品质
+		if HERO_TEMPLATES.has(hero.get("id", "")):
+			var tmpl = HERO_TEMPLATES[hero["id"]]
+			hero["quality"] = tmpl.get("quality", hero.get("quality", "N"))
+			
 		if typeof(hero.get("color")) == TYPE_STRING:
 			hero["color"] = Color.html(hero["color"])
 		player_heroes.append(hero)
