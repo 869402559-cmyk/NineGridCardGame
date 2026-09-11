@@ -29,8 +29,23 @@ func refresh_display() -> void:
 		
 	var combined = GameData.calc_combined_stats(hero)
 	var troop = GameData.get_troop_by_id(hero.get("troop_id", "t_cavalry"))
+	var q_cfg = GameData.get_quality_config(hero.get("quality", "N"))
 	
+	# 设置左侧头像框品质底色与边框
+	var portrait_card = $Panel/Margin/HBox/LeftBox/PortraitCard as PanelContainer
+	if portrait_card:
+		var style = StyleBoxFlat.new()
+		style.bg_color = q_cfg["bg_color"]
+		style.set_corner_radius_all(8)
+		style.border_width_bottom = q_cfg["border_width"]
+		style.border_width_left = q_cfg["border_width"]
+		style.border_width_right = q_cfg["border_width"]
+		style.border_width_top = q_cfg["border_width"]
+		style.border_color = q_cfg["border_color"]
+		portrait_card.add_theme_stylebox_override("panel", style)
+		
 	name_quality_lbl.text = "[" + hero.get("quality", "N") + "] " + hero.get("name", "武将")
+	name_quality_lbl.add_theme_color_override("font_color", q_cfg["label_color"])
 	level_lbl.text = "等级: Lv." + str(hero.get("level", 1))
 	
 	var cost = GameData.get_upgrade_cost(hero.get("level", 1))
@@ -46,9 +61,9 @@ func refresh_display() -> void:
 		avatar_texture.texture = null
 		
 	var info_bbcode = ""
-	info_bbcode += "[color=gold][b]👤 武将基础属性[/b][/color]
+	info_bbcode += "[color=" + q_cfg["color"].to_html() + "][b]👤 武将基础属性[/b][/color]
 "
-	info_bbcode += "• 姓名: " + hero.get("name", "") + " | 品质: " + hero.get("quality", "") + "
+	info_bbcode += "• 姓名: " + hero.get("name", "") + " | 品质: [color=" + q_cfg["color"].to_html() + "]" + hero.get("quality", "") + "[/color]
 "
 	info_bbcode += "• 等级: Lv." + str(hero.get("level", 1)) + "
 "

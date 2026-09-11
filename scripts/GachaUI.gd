@@ -36,11 +36,13 @@ func _on_draw_ten() -> void:
 func perform_single_draw() -> Dictionary:
 	var rand_val = randf() * 100.0
 	var quality = "N"
-	if rand_val < 3.0:
+	if rand_val < 1.0:
+		quality = "UR"
+	elif rand_val < 5.0: # 1% + 4% = 5%
 		quality = "SSR"
-	elif rand_val < 15.0:
+	elif rand_val < 20.0: # 5% + 15% = 20%
 		quality = "SR"
-	elif rand_val < 50.0:
+	elif rand_val < 55.0: # 20% + 35% = 55%
 		quality = "R"
 	else:
 		quality = "N"
@@ -64,14 +66,15 @@ func add_card_display(hero: Dictionary) -> void:
 	var card = PanelContainer.new()
 	card.custom_minimum_size = Vector2(120, 160)
 	
+	var q_cfg = GameData.get_quality_config(hero.get("quality", "N"))
 	var style = StyleBoxFlat.new()
-	style.bg_color = hero.get("color", Color(0.3, 0.3, 0.3))
+	style.bg_color = q_cfg["bg_color"]
 	style.set_corner_radius_all(8)
-	style.border_width_bottom = 3
-	style.border_width_left = 3
-	style.border_width_right = 3
-	style.border_width_top = 3
-	style.border_color = Color(1, 1, 1, 0.8)
+	style.border_width_bottom = q_cfg["border_width"]
+	style.border_width_left = q_cfg["border_width"]
+	style.border_width_right = q_cfg["border_width"]
+	style.border_width_top = q_cfg["border_width"]
+	style.border_color = q_cfg["border_color"]
 	card.add_theme_stylebox_override("panel", style)
 	
 	var vbox = VBoxContainer.new()
@@ -88,20 +91,23 @@ func add_card_display(hero: Dictionary) -> void:
 		img.texture = load(combined["texture_path"])
 	vbox.add_child(img)
 	
+	var qual_lbl = Label.new()
+	qual_lbl.text = "[" + hero.get("quality", "N") + "] " + combined["troop_type"]
+	qual_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	qual_lbl.add_theme_font_size_override("font_size", 13)
+	qual_lbl.add_theme_color_override("font_color", q_cfg["label_color"])
+	
 	var name_lbl = Label.new()
 	name_lbl.text = hero["name"]
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.add_theme_font_size_override("font_size", 16)
-	
-	var qual_lbl = Label.new()
-	qual_lbl.text = "[" + hero["quality"] + "] " + combined["troop_type"]
-	qual_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	qual_lbl.add_theme_font_size_override("font_size", 13)
+	name_lbl.add_theme_color_override("font_color", q_cfg["label_color"])
 	
 	var skill_lbl = Label.new()
 	skill_lbl.text = "战法: " + combined["skill_name"]
 	skill_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	skill_lbl.add_theme_font_size_override("font_size", 12)
+	skill_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	
 	vbox.add_child(qual_lbl)
 	vbox.add_child(name_lbl)

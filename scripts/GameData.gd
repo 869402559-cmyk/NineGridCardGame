@@ -24,6 +24,63 @@ var player_formation: Dictionary = {
 var cleared_difficulties: Array = [] # 记录通关记录，如 ["Easy", "Normal"]
 var has_unsaved_changes: bool = false
 
+# ---------------------------------------------------
+# 五级品质视觉与外观配置 (UR, SSR, SR, R, N)
+# ---------------------------------------------------
+const QUALITY_CONFIGS = {
+	"UR": {
+		"rank": 5,
+		"name": "UR",
+		"color": Color(1.0, 0.2, 0.35), # 闪耀赤金
+		"border_color": Color(1.0, 0.85, 0.2), # 金色边框
+		"bg_color": Color(0.28, 0.08, 0.12), # 暗赤金底色
+		"border_width": 3,
+		"label_color": Color(1.0, 0.9, 0.4)
+	},
+	"SSR": {
+		"rank": 4,
+		"name": "SSR",
+		"color": Color(1.0, 0.7, 0.1), # 耀眼金
+		"border_color": Color(1.0, 0.8, 0.2), # 靓金边框
+		"bg_color": Color(0.25, 0.18, 0.05), # 暗金底色
+		"border_width": 2,
+		"label_color": Color(1.0, 0.85, 0.3)
+	},
+	"SR": {
+		"rank": 3,
+		"name": "SR",
+		"color": Color(0.7, 0.3, 1.0), # 华丽紫
+		"border_color": Color(0.8, 0.4, 1.0), # 绚紫边框
+		"bg_color": Color(0.18, 0.08, 0.25), # 暗紫底色
+		"border_width": 2,
+		"label_color": Color(0.85, 0.6, 1.0)
+	},
+	"R": {
+		"rank": 2,
+		"name": "R",
+		"color": Color(0.2, 0.6, 1.0), # 稳重蓝
+		"border_color": Color(0.3, 0.7, 1.0), # 湛蓝边框
+		"bg_color": Color(0.08, 0.15, 0.25), # 深蓝底色
+		"border_width": 1,
+		"label_color": Color(0.5, 0.8, 1.0)
+	},
+	"N": {
+		"rank": 1,
+		"name": "N",
+		"color": Color(0.5, 0.5, 0.5), # 朴素灰
+		"border_color": Color(0.35, 0.35, 0.35), # 哑光灰边框
+		"bg_color": Color(0.12, 0.12, 0.12), # 极暗灰底色
+		"border_width": 1,
+		"label_color": Color(0.65, 0.65, 0.65)
+	}
+}
+
+func get_quality_config(qual_str: String) -> Dictionary:
+	var key = qual_str.to_upper().strip_edges()
+	if QUALITY_CONFIGS.has(key):
+		return QUALITY_CONFIGS[key]
+	return QUALITY_CONFIGS["N"]
+
 signal gold_changed()
 signal exp_changed()
 signal save_status_changed(msg: String)
@@ -184,7 +241,7 @@ func login_account(username: String, pass_word: String) -> String:
 
 func get_default_new_account_save() -> Dictionary:
 	var initial_heroes = []
-	var init_ids = ["h_01", "h_04", "h_05", "h_08", "h_11"]
+	var init_ids = ["h_01", "h_02", "h_04", "h_08", "h_11"]
 	var initial_formation = { "1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null }
 	
 	for i in range(init_ids.size()):
