@@ -49,6 +49,7 @@ var is_battle_running: bool = false
 var battle_round: int = 1
 var is_animating: bool = false
 var is_fast_simulating: bool = false
+var is_reward_given: bool = false # 确保一次战斗结算奖励只发放一次
 
 func _ready() -> void:
 	diff_select.clear()
@@ -320,6 +321,7 @@ func _on_start_battle() -> void:
 		return
 		
 	is_battle_running = true
+	is_reward_given = false
 	battle_round = 1
 	is_fast_simulating = false
 	GameData.is_in_battle = true # 设置战斗中标记
@@ -381,7 +383,9 @@ func _on_skip_battle() -> void:
 			log_text.text = "[color=red]报错：玩家未上阵任何武将！请先前往【阵型】布阵。[/color]"
 			return
 		is_battle_running = true
+		is_reward_given = false
 		battle_round = 1
+		GameData.is_in_battle = true
 		log_text.text = "[color=yellow]=== 战斗开始 (已跳过演播) ===[/color]"
 			
 	is_fast_simulating = true
@@ -734,21 +738,23 @@ func check_battle_over() -> bool:
 		is_battle_running = false
 		GameData.is_in_battle = false # 战斗结束取消标记
 		
-		if player_alive:
-			append_log("
+		if not is_reward_given:
+			is_reward_given = true
+			if player_alive:
+				append_log("
 [color=green]======================[/color]")
-			append_log("[color=green]  战斗大捷！玩家获得胜利！  [/color]")
-			append_log("[color=green]  战利品：金币 +100，经验池 +100！  [/color]")
-			append_log("[color=green]======================[/color]")
-			GameData.player_gold += 100
-			GameData.player_exp_pool += 100
-			GameData.emit_signal("gold_changed")
-			GameData.emit_signal("exp_changed")
-		else:
-			append_log("
+				append_log("[color=green]  战斗大捷！玩家获得胜利！  [/color]")
+				append_log("[color=green]  战利品：金币 +100，经验池 +100！  [/color]")
+				append_log("[color=green]======================[/color]")
+				GameData.player_gold += 100
+				GameData.player_exp_pool += 100
+				GameData.emit_signal("gold_changed")
+				GameData.emit_signal("exp_changed")
+			else:
+				append_log("
 [color=red]======================[/color]")
-			append_log("[color=red]  惨遭败北！电脑获得胜利！  [/color]")
-			append_log("[color=red]======================[/color]")
+				append_log("[color=red]  惨遭败北！电脑获得胜利！  [/color]")
+				append_log("[color=red]======================[/color]")
 		return true
 	return false
 
