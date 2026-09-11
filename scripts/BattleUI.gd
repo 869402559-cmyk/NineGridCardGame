@@ -26,7 +26,7 @@ class BattleUnit:
 	var evade_rate: float = 0.05 # 闪避率
 	var bonus_target: String = "无"
 	var bonus_rate: float = 0.0
-	var mp: int = 0
+	var mp: int = 60 # 初始士气固定为 60
 	var troop_name: String
 	var troop_type: String
 	var atk_type: String
@@ -173,8 +173,8 @@ func create_card_node(pos: int, is_player: bool) -> Control:
 	mp_bar.name = "MpBar"
 	mp_bar.custom_minimum_size = Vector2(0, 14)
 	mp_bar.show_percentage = false
-	mp_bar.max_value = 100
-	mp_bar.value = 0
+	mp_bar.max_value = 120
+	mp_bar.value = 60
 	var mp_style = StyleBoxFlat.new()
 	mp_style.bg_color = Color(0.9, 0.7, 0.1)
 	mp_style.set_corner_radius_all(2)
@@ -182,7 +182,7 @@ func create_card_node(pos: int, is_player: bool) -> Control:
 	
 	var mp_lbl = Label.new()
 	mp_lbl.name = "MpLbl"
-	mp_lbl.text = "士气: 0/100"
+	mp_lbl.text = "士气: 60/120"
 	mp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	mp_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	mp_lbl.set_anchors_preset(PRESET_FULL_RECT)
@@ -265,7 +265,7 @@ func load_preview_formations() -> void:
 				u.evade_rate = combined["evade_rate"]
 				u.bonus_target = combined.get("bonus_target", "无")
 				u.bonus_rate = combined.get("bonus_rate", 0.0)
-				u.mp = 0
+				u.mp = 60 # 初始开局固定 60 士气
 				u.troop_name = combined["troop_name"]
 				u.troop_type = combined["troop_type"]
 				u.atk_type = combined["atk_type"]
@@ -297,7 +297,7 @@ func load_preview_formations() -> void:
 			u.evade_rate = combined["evade_rate"]
 			u.bonus_target = combined.get("bonus_target", "无")
 			u.bonus_rate = combined.get("bonus_rate", 0.0)
-			u.mp = 0
+			u.mp = 60 # 初始开局固定 60 士气
 			u.troop_name = combined["troop_name"]
 			u.troop_type = combined["troop_type"]
 			u.atk_type = combined["atk_type"]
@@ -449,9 +449,9 @@ func execute_attack_logic(attacker: BattleUnit, target: BattleUnit) -> void:
 			for p in side_dict.keys():
 				var ally = side_dict[p] as BattleUnit
 				if ally.is_alive():
-					ally.mp = min(100, ally.mp + 60)
+					ally.mp = min(120, ally.mp + 60)
 		else:
-			attacker.mp = min(100, attacker.mp + 10) # 鼓手自己普攻加10士气
+			attacker.mp = min(120, attacker.mp + 10) # 鼓手自己普攻加10士气
 			var side_dict = player_units if attacker.is_player else enemy_units
 			var candidates = []
 			for p in side_dict.keys():
@@ -460,7 +460,7 @@ func execute_attack_logic(attacker: BattleUnit, target: BattleUnit) -> void:
 					candidates.append(ally)
 			if candidates.size() > 0:
 				var chosen = candidates[randi() % candidates.size()]
-				chosen.mp = min(100, chosen.mp + 35)
+				chosen.mp = min(120, chosen.mp + 35)
 				append_log(atk_tag + attacker.name + " 擂鼓助威，为队友 [color=yellow]" + chosen.name + "[/color] 增加了 35 点士气！")
 		return
 
@@ -477,7 +477,7 @@ func execute_attack_logic(attacker: BattleUnit, target: BattleUnit) -> void:
 		else:
 			append_log(atk_tag + attacker.name + " 释放战法 [color=orange]【" + attacker.skill_name + "】[/color] 攻击 " + target.name + "，造成 [color=red]" + str(damage) + "[/color] 战法伤害！")
 			
-		target.mp = min(100, target.mp + 25) # 受击加 25 士气
+		target.mp = min(120, target.mp + 25) # 受击加 25 士气
 		target.current_hp = max(0, target.current_hp - damage)
 		if not target.is_alive():
 			append_log("[color=gray]" + target.name + " 阵亡！[/color]")
@@ -486,11 +486,11 @@ func execute_attack_logic(attacker: BattleUnit, target: BattleUnit) -> void:
 	# 3. 普通攻击：判断闪避
 	if randf() < target.evade_rate:
 		append_log(atk_tag + attacker.name + " 攻击 " + target.name + "，但被敌方 [color=cyan]【" + target.troop_name + "】[/color] 成功 [color=cyan]闪避 (MISS)[/color]！")
-		attacker.mp = min(100, attacker.mp + 10) # 普攻未命中也增加 10 士气
+		attacker.mp = min(120, attacker.mp + 10) # 普攻未命中也增加 10 士气
 		return
 
 	# 4. 普通攻击命中结算
-	attacker.mp = min(100, attacker.mp + 10) # 普攻加 10 士气
+	attacker.mp = min(120, attacker.mp + 10) # 普攻加 10 士气
 	var base_dmg = (attacker.atk * 1.5) - (target.def * 0.8)
 	var damage = max(10, int(base_dmg * (0.9 + randf() * 0.2)))
 	
@@ -501,7 +501,7 @@ func execute_attack_logic(attacker: BattleUnit, target: BattleUnit) -> void:
 	else:
 		append_log(atk_tag + attacker.name + " [普攻] 攻击 " + target.name + "，造成 [color=red]" + str(damage) + "[/color] 伤害！")
 		
-	target.mp = min(100, target.mp + 25) # 受击加 25 士气
+	target.mp = min(120, target.mp + 25) # 受击加 25 士气
 	target.current_hp = max(0, target.current_hp - damage)
 	if not target.is_alive():
 		append_log("[color=gray]" + target.name + " 阵亡！[/color]")
@@ -536,14 +536,14 @@ func play_attack_sequence(attacker: BattleUnit, target: BattleUnit) -> void:
 			for p in side_dict.keys():
 				var ally = side_dict[p] as BattleUnit
 				if ally.is_alive():
-					ally.mp = min(100, ally.mp + 60)
+					ally.mp = min(120, ally.mp + 60)
 					spawn_floating_text(ally.ui_card.global_position + Vector2(20, 10), "+60 士气", Color(1.0, 0.9, 0.2))
 					
 			render_all_cards()
 			await get_tree().create_timer(0.3).timeout
 			return
 		else:
-			attacker.mp = min(100, attacker.mp + 10)
+			attacker.mp = min(120, attacker.mp + 10)
 			var side_dict = player_units if attacker.is_player else enemy_units
 			var candidates = []
 			for p in side_dict.keys():
@@ -553,7 +553,7 @@ func play_attack_sequence(attacker: BattleUnit, target: BattleUnit) -> void:
 			
 			if candidates.size() > 0:
 				var chosen = candidates[randi() % candidates.size()]
-				chosen.mp = min(100, chosen.mp + 35)
+				chosen.mp = min(120, chosen.mp + 35)
 				append_log(atk_tag + attacker.name + " 擂鼓助威，为队友 [color=yellow]" + chosen.name + "[/color] 增加了 35 点士气！")
 				spawn_floating_text(atk_card.global_position + Vector2(20, -15), "擂鼓助威", Color(0.9, 0.8, 0.2))
 				spawn_floating_text(chosen.ui_card.global_position + Vector2(20, 10), "+35 士气", Color(1.0, 0.9, 0.2))
@@ -601,7 +601,7 @@ func play_attack_sequence(attacker: BattleUnit, target: BattleUnit) -> void:
 	# 3. 判定闪避 (MISS) —— 闪避向后退并浮出大 MISS 飘字
 	# ----------------------------------------------------
 	if not is_skill and randf() < target.evade_rate:
-		attacker.mp = min(100, attacker.mp + 10)
+		attacker.mp = min(120, attacker.mp + 10)
 		append_log(atk_tag + attacker.name + " 攻击 " + target.name + "，被 [color=cyan]【" + target.troop_name + "】[/color] 成功 [color=cyan]闪避 (MISS)[/color]！")
 		
 		# 闪避受击方动作：向后退一下
@@ -635,7 +635,7 @@ func play_attack_sequence(attacker: BattleUnit, target: BattleUnit) -> void:
 		else:
 			append_log(atk_tag + attacker.name + " 释放战法 [color=orange]【" + attacker.skill_name + "】[/color] 攻击 " + target.name + "，造成 [color=red]" + str(damage) + "[/color] 战法伤害！")
 	else:
-		attacker.mp = min(100, attacker.mp + 10)
+		attacker.mp = min(120, attacker.mp + 10)
 		var base_dmg = (attacker.atk * 1.5) - (target.def * 0.8)
 		damage = max(10, int(base_dmg * (0.9 + randf() * 0.2)))
 		if attacker.bonus_target != "无" and attacker.bonus_target == target.troop_type:
@@ -644,7 +644,7 @@ func play_attack_sequence(attacker: BattleUnit, target: BattleUnit) -> void:
 		else:
 			append_log(atk_tag + attacker.name + " [普攻] 攻击 " + target.name + "，造成 [color=red]" + str(damage) + "[/color] 伤害！")
 			
-	target.mp = min(100, target.mp + 25) # 受击 +25 士气
+	target.mp = min(120, target.mp + 25) # 受击 +25 士气
 	target.current_hp = max(0, target.current_hp - damage)
 	
 	spawn_floating_text(tgt_card.global_position + Vector2(25, -10), "-" + str(damage), Color(1.0, 0.25, 0.2))
