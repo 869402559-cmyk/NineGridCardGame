@@ -99,206 +99,119 @@ func create_card_node(pos: int, is_player: bool) -> Control:
 	margin.add_theme_constant_override("margin_bottom", 2)
 	card.add_child(margin)
 	
-	var vbox = VBoxContainer.new()
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 2)
-	vbox.set_anchors_preset(PRESET_FULL_RECT)
-	margin.add_child(vbox)
+	var panel = Panel.new()
+	panel.name = "BgPanel"
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_child(panel)
 	
-	# 位置与名字
-	var pos_lbl = Label.new()
-	pos_lbl.name = "PosLbl"
-	pos_lbl.text = str(pos) + "号位 (空)"
-	pos_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	pos_lbl.add_theme_font_size_override("font_size", 12)
-	pos_lbl.add_theme_color_override("font_color", Color(0.35, 0.3, 0.2))
-	vbox.add_child(pos_lbl)
+	var vbox = VBoxContainer.new()
+	vbox.name = "VBox"
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_theme_constant_override("separation", 2)
+	margin.add_child(vbox)
 	
 	var name_lbl = Label.new()
 	name_lbl.name = "NameLbl"
-	name_lbl.text = ""
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 14)
-	name_lbl.add_theme_color_override("font_color", Color(0.1, 0.08, 0.05))
+	name_lbl.add_theme_font_size_override("font_size", 13)
 	vbox.add_child(name_lbl)
 	
-	# 小兵军团重叠舞台
-	var troop_stage = Control.new()
-	troop_stage.name = "TroopStage"
-	troop_stage.custom_minimum_size = Vector2(120, 85)
-	troop_stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_child(troop_stage)
+	var avatar_rect = TextureRect.new()
+	avatar_rect.name = "AvatarRect"
+	avatar_rect.custom_minimum_size = Vector2(60, 60)
+	avatar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	avatar_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	avatar_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	vbox.add_child(avatar_rect)
 	
-	for i in range(9):
-		var sol_rect = TextureRect.new()
-		sol_rect.name = "Sol_" + str(i)
-		sol_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		sol_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		sol_rect.custom_minimum_size = Vector2(50, 50)
-		sol_rect.size = Vector2(50, 50)
-		sol_rect.set_anchors_preset(PRESET_FULL_RECT)
-		if not is_player:
-			sol_rect.flip_h = true
-		troop_stage.add_child(sol_rect)
-		
-	troop_stage.resized.connect(func():
-		update_troop_layout(troop_stage)
-	)
-	
-	# 红色渐变血条
 	var hp_bar = ProgressBar.new()
 	hp_bar.name = "HpBar"
-	hp_bar.custom_minimum_size = Vector2(0, 16)
+	hp_bar.custom_minimum_size = Vector2(0, 12)
 	hp_bar.show_percentage = false
-	hp_bar.value = 100
-	var hp_style = StyleBoxFlat.new()
-	hp_style.bg_color = Color(0.85, 0.15, 0.15)
-	hp_style.set_corner_radius_all(3)
-	hp_bar.add_theme_stylebox_override("fill", hp_style)
+	vbox.add_child(hp_bar)
 	
 	var hp_lbl = Label.new()
 	hp_lbl.name = "HpLbl"
-	hp_lbl.text = ""
 	hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hp_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	hp_lbl.set_anchors_preset(PRESET_FULL_RECT)
 	hp_lbl.add_theme_font_size_override("font_size", 10)
-	hp_lbl.add_theme_color_override("font_color", Color(1, 1, 1))
-	hp_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-	hp_lbl.add_theme_constant_override("outline_size", 3)
-	hp_bar.add_child(hp_lbl)
-	vbox.add_child(hp_bar)
+	vbox.add_child(hp_lbl)
 	
-	# 士气条
 	var mp_bar = ProgressBar.new()
 	mp_bar.name = "MpBar"
-	mp_bar.custom_minimum_size = Vector2(0, 14)
-	mp_bar.show_percentage = false
+	mp_bar.custom_minimum_size = Vector2(0, 8)
 	mp_bar.max_value = 100
-	mp_bar.value = 50
-	var mp_style = StyleBoxFlat.new()
-	mp_style.bg_color = Color(0.9, 0.7, 0.1)
-	mp_style.set_corner_radius_all(2)
-	mp_bar.add_theme_stylebox_override("fill", mp_style)
-	
-	var mp_lbl = Label.new()
-	mp_lbl.name = "MpLbl"
-	mp_lbl.text = "士气: 50/100"
-	mp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	mp_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	mp_lbl.set_anchors_preset(PRESET_FULL_RECT)
-	mp_lbl.add_theme_font_size_override("font_size", 9)
-	mp_lbl.add_theme_color_override("font_color", Color(1, 1, 1))
-	mp_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-	mp_lbl.add_theme_constant_override("outline_size", 3)
-	mp_bar.add_child(mp_lbl)
+	mp_bar.show_percentage = false
 	vbox.add_child(mp_bar)
 	
-	# 阵亡印章 Overlay
-	var dead_mask = Label.new()
-	dead_mask.name = "DeadStamp"
-	dead_mask.text = "【已阵亡】"
-	dead_mask.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	dead_mask.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	dead_mask.add_theme_font_size_override("font_size", 20)
-	dead_mask.add_theme_color_override("font_color", Color(0.9, 0.1, 0.1, 0.95))
-	dead_mask.visible = false
-	dead_mask.set_anchors_preset(PRESET_FULL_RECT)
-	card.add_child(dead_mask)
-	
+	card.visible = false
 	return card
 
-func update_troop_layout(stage: Control) -> void:
-	var sw = stage.size.x
-	var sh = stage.size.y
-	if sw < 10 or sh < 10:
-		return
-		
-	var sol_size = Vector2(clamp(sw * 0.4, 32, 65), clamp(sh * 0.5, 32, 65))
-	var x_step = (sw - sol_size.x) / 2.0 if sw > sol_size.x else 0.0
-	var y_step = (sh - sol_size.y) / 2.0 if sh > sol_size.y else 0.0
-	
-	var grid_positions = [
-		Vector2(0, 0),                  Vector2(x_step, 0),                 Vector2(sw - sol_size.x, 0),
-		Vector2(x_step * 0.3, y_step),  Vector2(x_step, y_step),            Vector2(sw - sol_size.x - x_step * 0.3, y_step),
-		Vector2(0, sh - sol_size.y),    Vector2(x_step, sh - sol_size.y),   Vector2(sw - sol_size.x, sh - sol_size.y)
-	]
-	
-	for i in range(min(9, stage.get_child_count())):
-		var sol = stage.get_child(i) as Control
-		sol.size = sol_size
-		sol.position = grid_positions[i]
-
-func _on_diff_selected(_index: int) -> void:
-	if not is_battle_running and not is_animating:
-		load_preview_formations()
-
 func load_preview_formations() -> void:
-	var diff_str = "Normal"
-	match diff_select.selected:
-		0: diff_str = "Easy"
-		1: diff_str = "Normal"
-		2: diff_str = "Hard"
-		3: diff_str = "Nightmare"
-		
 	player_units.clear()
 	enemy_units.clear()
 	
+	var p_form = GameData.player_formation
 	for pos in range(1, 10):
-		var uuid = GameData.player_formation[pos]
-		if uuid != null:
-			var h = GameData.get_hero_by_uuid(uuid)
-			if not h.is_empty():
-				var combined = GameData.calc_combined_stats(h)
-				var u = BattleUnit.new()
-				u.uuid = h["uuid"]
-				u.name = h["name"]
-				u.is_player = true
-				u.pos = pos
-				u.level = h.get("level", 1)
-				u.max_hp = combined["hp"]
-				u.current_hp = combined["hp"]
-				u.atk = combined["atk"]
-				u.def = combined["def"]
-				u.satk = combined["satk"]
-				u.sdef = combined["sdef"]
-				u.spd = combined["spd"]
-				u.evade_rate = combined["evade_rate"]
-				u.bonus_target = combined.get("bonus_target", "无")
-				u.bonus_rate = combined.get("bonus_rate", 0.0)
-				u.mp = 50 # 初始开局固定 50 士气
-				u.troop_name = combined["troop_name"]
-				u.troop_type = combined["troop_type"]
-				u.atk_type = combined["atk_type"]
-				u.skill_name = combined["skill_name"]
-				u.skill_desc = combined["skill_desc"]
-				u.anim_type = combined["anim_type"]
-				u.texture_path = combined["texture_path"]
-				u.ui_card = player_cards[pos]
-				player_units[pos] = u
-				
-	var e_form = GameData.get_enemy_formation(diff_str)
-	for pos in range(1, 10):
-		var h = e_form[pos]
-		if h != null:
-			var combined = GameData.calc_combined_stats(h)
+		if p_form.has(pos) and p_form[pos] != null:
+			var hero = p_form[pos]
+			var combined = GameData.calc_combined_stats(hero)
 			var u = BattleUnit.new()
-			u.uuid = h["uuid"]
-			u.name = h["name"]
-			u.is_player = false
+			u.uuid = hero.get("uuid", str(pos))
+			u.name = hero.get("name", "英雄")
+			u.is_player = true
 			u.pos = pos
-			u.level = h.get("level", 1)
+			u.level = hero.get("level", 1)
 			u.max_hp = combined["hp"]
-			u.current_hp = combined["hp"]
+			u.current_hp = u.max_hp
 			u.atk = combined["atk"]
 			u.def = combined["def"]
 			u.satk = combined["satk"]
 			u.sdef = combined["sdef"]
 			u.spd = combined["spd"]
 			u.evade_rate = combined["evade_rate"]
-			u.bonus_target = combined.get("bonus_target", "无")
-			u.bonus_rate = combined.get("bonus_rate", 0.0)
-			u.mp = 50 # 初始开局固定 50 士气
+			u.bonus_target = combined["bonus_target"]
+			u.bonus_rate = combined["bonus_rate"]
+			u.mp = 50
+			u.troop_name = combined["troop_name"]
+			u.troop_type = combined["troop_type"]
+			u.atk_type = combined["atk_type"]
+			u.skill_name = combined["skill_name"]
+			u.skill_desc = combined["skill_desc"]
+			u.anim_type = combined["anim_type"]
+			u.texture_path = combined["texture_path"]
+			u.ui_card = player_cards[pos]
+			player_units[pos] = u
+			
+	var diff_idx = diff_select.selected
+	var diff_str = "Normal"
+	match diff_idx:
+		0: diff_str = "Easy"
+		1: diff_str = "Normal"
+		2: diff_str = "Hard"
+		3: diff_str = "Nightmare"
+		
+	var e_form = GameData.get_enemy_formation(diff_str)
+	for pos in range(1, 10):
+		if e_form.has(pos) and e_form[pos] != null:
+			var hero = e_form[pos]
+			var combined = GameData.calc_combined_stats(hero)
+			var u = BattleUnit.new()
+			u.uuid = hero.get("uuid", "enemy_" + str(pos))
+			u.name = hero.get("name", "敌将")
+			u.is_player = false
+			u.pos = pos
+			u.level = hero.get("level", 1)
+			u.max_hp = combined["hp"]
+			u.current_hp = u.max_hp
+			u.atk = combined["atk"]
+			u.def = combined["def"]
+			u.satk = combined["satk"]
+			u.sdef = combined["sdef"]
+			u.spd = combined["spd"]
+			u.evade_rate = combined["evade_rate"]
+			u.bonus_target = combined["bonus_target"]
+			u.bonus_rate = combined["bonus_rate"]
+			u.mp = 50
 			u.troop_name = combined["troop_name"]
 			u.troop_type = combined["troop_type"]
 			u.atk_type = combined["atk_type"]
@@ -311,8 +224,55 @@ func load_preview_formations() -> void:
 			
 	render_all_cards()
 
+func render_all_cards() -> void:
+	for pos in range(1, 10):
+		update_card_ui(player_cards[pos], player_units.get(pos))
+		update_card_ui(enemy_cards[pos], enemy_units.get(pos))
+
+func update_card_ui(card_node: Control, unit: BattleUnit) -> void:
+	if unit == null or not unit.is_alive():
+		card_node.visible = false
+		return
+		
+	card_node.visible = true
+	var vbox = card_node.get_node("MarginContainer/VBox")
+	var name_lbl = vbox.get_node("NameLbl") as Label
+	var avatar_rect = vbox.get_node("AvatarRect") as TextureRect
+	var hp_bar = vbox.get_node("HpBar") as ProgressBar
+	var hp_lbl = vbox.get_node("HpLbl") as Label
+	var mp_bar = vbox.get_node("MpBar") as ProgressBar
+	var bg_panel = card_node.get_node("MarginContainer/BgPanel") as Panel
+	
+	name_lbl.text = unit.name + "
+[" + unit.troop_name + "]"
+	hp_bar.max_value = unit.max_hp
+	hp_bar.value = unit.current_hp
+	hp_lbl.text = str(unit.current_hp) + " / " + str(unit.max_hp)
+	mp_bar.value = unit.mp
+	
+	# 设置品级/兵种渲染背景样式
+	var sb = StyleBoxFlat.new()
+	if unit.is_player:
+		sb.bg_color = Color(0.12, 0.22, 0.15, 0.85)
+		sb.border_color = Color(0.2, 0.8, 0.3, 1.0)
+	else:
+		sb.bg_color = Color(0.25, 0.12, 0.12, 0.85)
+		sb.border_color = Color(0.8, 0.2, 0.2, 1.0)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(4)
+	bg_panel.add_theme_stylebox_override("panel", sb)
+	
+	if unit.texture_path != "" and ResourceLoader.exists(unit.texture_path):
+		avatar_rect.texture = load(unit.texture_path)
+	else:
+		avatar_rect.texture = null
+
+func _on_diff_selected(_idx: int) -> void:
+	if not is_battle_running:
+		load_preview_formations()
+
 func _on_start_battle() -> void:
-	if is_animating or is_battle_running:
+	if is_battle_running:
 		return
 		
 	load_preview_formations()
@@ -323,20 +283,20 @@ func _on_start_battle() -> void:
 	is_battle_running = true
 	is_reward_given = false
 	battle_round = 1
-	is_fast_simulating = false
-	GameData.is_in_battle = true # 设置战斗中标记
-	log_text.text = "[color=yellow]=== 战斗正式开始！难度：" + diff_select.get_item_text(diff_select.selected) + " ===[/color]"
+	GameData.is_in_battle = true
+	btn_start.disabled = true
+	btn_skip.disabled = false
+	log_text.text = "[color=yellow]=== 战斗开始 ===[/color]
+"
 	
 	start_auto_battle_loop()
 
 func start_auto_battle_loop() -> void:
-	while is_battle_running and not is_fast_simulating:
-		is_animating = true
+	while is_battle_running:
 		append_log("
 [color=cyan]--- 第 " + str(battle_round) + " 回合 ---[/color]")
-		
 		var action_queue = build_action_queue()
-				
+		
 		for attacker in action_queue:
 			if not is_battle_running or is_fast_simulating:
 				break
@@ -345,36 +305,35 @@ func start_auto_battle_loop() -> void:
 				
 			var defender_dict = enemy_units if attacker.is_player else player_units
 			var target = find_target(attacker, defender_dict)
-			if target == null:
+			if target == null and attacker.troop_type not in ["鼓手", "医师"]:
 				continue
 				
 			await play_attack_sequence(attacker, target)
 			
 			if check_battle_over():
-				is_animating = false
-				return
+				break
 				
+		if is_fast_simulating:
+			break
+			
 		battle_round += 1
-		is_animating = false
-		await get_tree().create_timer(0.2).timeout
+		await get_tree().create_timer(0.4).timeout
 
 func build_action_queue() -> Array:
-	var all_units: Array = []
-	for p in player_units.keys():
-		if player_units[p].is_alive():
-			all_units.append(player_units[p])
-	for p in enemy_units.keys():
-		if enemy_units[p].is_alive():
-			all_units.append(enemy_units[p])
+	var list = []
+	for u in player_units.values():
+		if (u as BattleUnit).is_alive():
+			list.append(u)
+	for u in enemy_units.values():
+		if (u as BattleUnit).is_alive():
+			list.append(u)
 			
-	all_units.sort_custom(func(a: BattleUnit, b: BattleUnit) -> bool:
+	list.sort_custom(func(a: BattleUnit, b: BattleUnit):
 		if a.spd != b.spd:
 			return a.spd > b.spd
-		if a.is_player != b.is_player:
-			return a.is_player
-		return a.pos < b.pos
+		return a.is_player and not b.is_player
 	)
-	return all_units
+	return list
 
 func _on_skip_battle() -> void:
 	if not is_battle_running:
@@ -405,7 +364,7 @@ func _on_skip_battle() -> void:
 				
 			var defender_dict = enemy_units if attacker.is_player else player_units
 			var target = find_target(attacker, defender_dict)
-			if target == null:
+			if target == null and attacker.troop_type not in ["鼓手", "医师"]:
 				continue
 				
 			execute_attack_logic(attacker, target)
@@ -441,6 +400,21 @@ func find_target(attacker: BattleUnit, defender_dict: Dictionary) -> BattleUnit:
 					return unit
 	return null
 
+# 寻找友方当前生命值百分比最低（或最需要加血）的活着单位
+func find_lowest_hp_ally(attacker: BattleUnit) -> BattleUnit:
+	var side_dict = player_units if attacker.is_player else enemy_units
+	var lowest_unit: BattleUnit = null
+	var lowest_ratio: float = 999.0
+	
+	for p in side_dict.keys():
+		var ally = side_dict[p] as BattleUnit
+		if ally.is_alive():
+			var ratio = float(ally.current_hp) / float(ally.max_hp)
+			if ratio < lowest_ratio:
+				lowest_ratio = ratio
+				lowest_unit = ally
+	return lowest_unit
+
 func execute_attack_logic(attacker: BattleUnit, target: BattleUnit) -> void:
 	var is_skill = (attacker.mp >= 100)
 	var atk_tag = "[color=green][玩家][/color]" if attacker.is_player else "[color=red][电脑][/color]"
@@ -454,9 +428,9 @@ func execute_attack_logic(attacker: BattleUnit, target: BattleUnit) -> void:
 			for p in side_dict.keys():
 				var ally = side_dict[p] as BattleUnit
 				if ally.is_alive():
-					ally.mp = min(120, ally.mp + 60)
+					ally.mp = min(100, ally.mp + 60)
 		else:
-			attacker.mp = min(120, attacker.mp + 10) # 鼓手自己普攻加10士气
+			attacker.mp = min(100, attacker.mp + 10) # 鼓手自己普攻加10士气
 			var side_dict = player_units if attacker.is_player else enemy_units
 			var candidates = []
 			for p in side_dict.keys():
@@ -465,11 +439,33 @@ func execute_attack_logic(attacker: BattleUnit, target: BattleUnit) -> void:
 					candidates.append(ally)
 			if candidates.size() > 0:
 				var chosen = candidates[randi() % candidates.size()]
-				chosen.mp = min(120, chosen.mp + 35)
+				chosen.mp = min(100, chosen.mp + 35)
 				append_log(atk_tag + attacker.name + " 擂鼓助威，为队友 [color=yellow]" + chosen.name + "[/color] 增加了 35 点士气！")
 		return
 
-	# 2. 战法攻击
+	# 2. 医师专属治疗与大招逻辑 (无攻击、无克制)
+	if attacker.troop_type == "医师":
+		var side_dict = player_units if attacker.is_player else enemy_units
+		if is_skill:
+			attacker.mp = 0
+			# 大招悬壶济世：基础 500 固定治疗 + 1.2 * satk 战法加成
+			var heal_amount = int(500 + attacker.satk * 1.2)
+			append_log(atk_tag + attacker.name + " 释放战法 [color=green]【" + attacker.skill_name + "】[/color]！悬壶济世为己方全体恢复 [color=green]+" + str(heal_amount) + "[/color] 兵力！")
+			for p in side_dict.keys():
+				var ally = side_dict[p] as BattleUnit
+				if ally.is_alive():
+					ally.current_hp = min(ally.max_hp, ally.current_hp + heal_amount)
+		else:
+			attacker.mp = min(100, attacker.mp + 10) # 普攻治疗加 10 士气
+			var lowest_ally = find_lowest_hp_ally(attacker)
+			if lowest_ally != null:
+				# 普攻治疗公式：100 基础治疗 + 0.7 * atk + 0.8 * satk
+				var heal_amount = int(100 + attacker.atk * 0.7 + attacker.satk * 0.8)
+				lowest_ally.current_hp = min(lowest_ally.max_hp, lowest_ally.current_hp + heal_amount)
+				append_log(atk_tag + attacker.name + " 妙手施诊，为伤势最重的 [color=green]" + lowest_ally.name + "[/color] 恢复了 [color=green]+" + str(heal_amount) + "[/color] 兵力！")
+		return
+
+	# 3. 战法攻击
 	if is_skill:
 		attacker.mp = 0
 		var base_dmg = (attacker.satk * 2.3) - (target.sdef * 0.75)
@@ -482,20 +478,20 @@ func execute_attack_logic(attacker: BattleUnit, target: BattleUnit) -> void:
 		else:
 			append_log(atk_tag + attacker.name + " 释放战法 [color=orange]【" + attacker.skill_name + "】[/color] 攻击 " + target.name + "，造成 [color=red]" + str(damage) + "[/color] 战法伤害！")
 			
-		target.mp = min(120, target.mp + 25) # 受击加 25 士气
+		target.mp = min(100, target.mp + 25) # 受击加 25 士气
 		target.current_hp = max(0, target.current_hp - damage)
 		if not target.is_alive():
 			append_log("[color=gray]" + target.name + " 阵亡！[/color]")
 		return
 
-	# 3. 普通攻击：判断闪避
+	# 4. 普通攻击：判断闪避
 	if randf() < target.evade_rate:
 		append_log(atk_tag + attacker.name + " 攻击 " + target.name + "，但被敌方 [color=cyan]【" + target.troop_name + "】[/color] 成功 [color=cyan]闪避 (MISS)[/color]！")
-		attacker.mp = min(120, attacker.mp + 10) # 普攻未命中也增加 10 士气
+		attacker.mp = min(100, attacker.mp + 10) # 普攻未命中也增加 10 士气
 		return
 
-	# 4. 普通攻击命中结算
-	attacker.mp = min(120, attacker.mp + 10) # 普攻加 10 士气
+	# 5. 普通攻击命中结算
+	attacker.mp = min(100, attacker.mp + 10) # 普攻加 10 士气
 	var base_dmg = (attacker.atk * 1.5) - (target.def * 0.8)
 	var damage = max(10, int(base_dmg * (0.9 + randf() * 0.2)))
 	
@@ -506,7 +502,7 @@ func execute_attack_logic(attacker: BattleUnit, target: BattleUnit) -> void:
 	else:
 		append_log(atk_tag + attacker.name + " [普攻] 攻击 " + target.name + "，造成 [color=red]" + str(damage) + "[/color] 伤害！")
 		
-	target.mp = min(120, target.mp + 25) # 受击加 25 士气
+	target.mp = min(100, target.mp + 25) # 受击加 25 士气
 	target.current_hp = max(0, target.current_hp - damage)
 	if not target.is_alive():
 		append_log("[color=gray]" + target.name + " 阵亡！[/color]")
@@ -514,10 +510,10 @@ func execute_attack_logic(attacker: BattleUnit, target: BattleUnit) -> void:
 func play_attack_sequence(attacker: BattleUnit, target: BattleUnit) -> void:
 	var is_skill = (attacker.mp >= 100)
 	var atk_card = attacker.ui_card
-	var tgt_card = target.ui_card
+	var tgt_card = target.ui_card if target != null else null
 	var atk_tag = "[color=green][玩家][/color]" if attacker.is_player else "[color=red][电脑][/color]"
 	var orig_global_pos = atk_card.global_position
-	var tgt_global_pos = tgt_card.global_position
+	var tgt_global_pos = tgt_card.global_position if tgt_card != null else Vector2.ZERO
 	
 	# ----------------------------------------------------
 	# 1. 鼓手专属攻击与战法动画逻辑 (不攻击敌方)
@@ -575,7 +571,59 @@ func play_attack_sequence(attacker: BattleUnit, target: BattleUnit) -> void:
 			return
 
 	# ----------------------------------------------------
-	# 2. 攻击者前跃动作起手 (根据兵种与战法区分)
+	# 2. 医师专属治疗与战法动画逻辑 (绿色数字飘字)
+	# ----------------------------------------------------
+	if attacker.troop_type == "医师":
+		var tw_doc = create_tween().set_parallel(true)
+		tw_doc.tween_property(atk_card, "scale", Vector2(1.15, 1.15), 0.2)
+		tw_doc.tween_property(atk_card, "modulate", Color(0.4, 1.8, 0.6), 0.2)
+		
+		var side_dict = player_units if attacker.is_player else enemy_units
+		if is_skill:
+			attacker.mp = 0
+			var heal_amount = int(500 + attacker.satk * 1.2)
+			append_log(atk_tag + attacker.name + " 释放战法 [color=green]【" + attacker.skill_name + "】[/color]！悬壶济世为己方全体恢复 [color=green]+" + str(heal_amount) + "[/color] 兵力！")
+			spawn_floating_text(atk_card.global_position + Vector2(15, -20), "【" + attacker.skill_name + "】", Color(0.2, 1.0, 0.4))
+			await tw_doc.finished
+			
+			var reset_tw = create_tween().set_parallel(true)
+			reset_tw.tween_property(atk_card, "scale", Vector2(1.0, 1.0), 0.15)
+			reset_tw.tween_property(atk_card, "modulate", Color(1, 1, 1), 0.15)
+			
+			for p in side_dict.keys():
+				var ally = side_dict[p] as BattleUnit
+				if ally.is_alive():
+					ally.current_hp = min(ally.max_hp, ally.current_hp + heal_amount)
+					# 绿色治疗数字飘字
+					spawn_floating_text(ally.ui_card.global_position + Vector2(20, -10), "+" + str(heal_amount), Color(0.2, 1.0, 0.4))
+					
+			render_all_cards()
+			await get_tree().create_timer(0.35).timeout
+			return
+		else:
+			attacker.mp = min(100, attacker.mp + 10)
+			var lowest_ally = find_lowest_hp_ally(attacker)
+			if lowest_ally != null:
+				var heal_amount = int(100 + attacker.atk * 0.7 + attacker.satk * 0.8)
+				lowest_ally.current_hp = min(lowest_ally.max_hp, lowest_ally.current_hp + heal_amount)
+				append_log(atk_tag + attacker.name + " 妙手施诊，为伤势最重的 [color=green]" + lowest_ally.name + "[/color] 恢复了 [color=green]+" + str(heal_amount) + "[/color] 兵力！")
+				spawn_floating_text(atk_card.global_position + Vector2(15, -20), "妙手回春", Color(0.3, 0.9, 0.4))
+				# 绿色治疗数字飘字
+				spawn_floating_text(lowest_ally.ui_card.global_position + Vector2(20, -10), "+" + str(heal_amount), Color(0.2, 1.0, 0.4))
+			else:
+				spawn_floating_text(atk_card.global_position + Vector2(15, -20), "妙手回春", Color(0.3, 0.9, 0.4))
+				
+			await tw_doc.finished
+			var reset_tw = create_tween().set_parallel(true)
+			reset_tw.tween_property(atk_card, "scale", Vector2(1.0, 1.0), 0.15)
+			reset_tw.tween_property(atk_card, "modulate", Color(1, 1, 1), 0.15)
+			
+			render_all_cards()
+			await get_tree().create_timer(0.3).timeout
+			return
+
+	# ----------------------------------------------------
+	# 3. 攻击者前跃动作起手 (根据兵种与战法区分)
 	# ----------------------------------------------------
 	var tw_atk = create_tween()
 	if is_skill:
@@ -603,7 +651,7 @@ func play_attack_sequence(attacker: BattleUnit, target: BattleUnit) -> void:
 		await tw_atk.finished
 
 	# ----------------------------------------------------
-	# 3. 判定闪避 (MISS) —— 闪避向后退并浮出大 MISS 飘字
+	# 4. 判定闪避 (MISS) —— 闪避向后退并浮出大 MISS 飘字
 	# ----------------------------------------------------
 	if not is_skill and randf() < target.evade_rate:
 		attacker.mp = min(100, attacker.mp + 10)
@@ -627,7 +675,7 @@ func play_attack_sequence(attacker: BattleUnit, target: BattleUnit) -> void:
 		return
 
 	# ----------------------------------------------------
-	# 4. 命中伤害结算与受击上下震动动画
+	# 5. 命中伤害结算与受击上下震动动画
 	# ----------------------------------------------------
 	var damage = 0
 	if is_skill:
@@ -649,200 +697,111 @@ func play_attack_sequence(attacker: BattleUnit, target: BattleUnit) -> void:
 		else:
 			append_log(atk_tag + attacker.name + " [普攻] 攻击 " + target.name + "，造成 [color=red]" + str(damage) + "[/color] 伤害！")
 			
-	target.mp = min(100, target.mp + 25) # 受击 +25 士气
+	target.mp = min(100, target.mp + 25) # 受击加 25 士气
 	target.current_hp = max(0, target.current_hp - damage)
-	
-	spawn_floating_text(tgt_card.global_position + Vector2(25, -10), "-" + str(damage), Color(1.0, 0.25, 0.2))
-	# 移除普通受击与普攻的士气飘字，仅保留伤害数字，防止飘字过于杂乱
-	
-	# 受击方动画：上下剧烈震动
+	if not target.is_alive():
+		append_log("[color=gray]" + target.name + " 阵亡！[/color]")
+		
+	# 受击方 Card 抖动效果 (Y 轴小幅度晃动)
 	var tw_hit = create_tween()
 	tw_hit.tween_property(tgt_card, "global_position", tgt_global_pos + Vector2(0, -15), 0.05)
 	tw_hit.tween_property(tgt_card, "global_position", tgt_global_pos + Vector2(0, 15), 0.05)
-	tw_hit.tween_property(tgt_card, "global_position", tgt_global_pos + Vector2(0, -8), 0.04)
-	tw_hit.tween_property(tgt_card, "global_position", tgt_global_pos, 0.04)
+	tw_hit.tween_property(tgt_card, "global_position", tgt_global_pos, 0.05)
 	
-	# 攻击者归位
-	var tw_back = create_tween()
-	tw_back.tween_property(atk_card, "global_position", orig_global_pos, 0.18).set_trans(Tween.TRANS_QUAD)
+	# 红色扣血数字飘字
+	spawn_floating_text(tgt_card.global_position + Vector2(25, -10), "-" + str(damage), Color(1.0, 0.25, 0.2))
 	
 	await tw_hit.finished
-	await tw_back.finished
 	
-	render_all_cards()
+	# 攻击者返回原位
+	var tw_return = create_tween()
+	tw_return.tween_property(atk_card, "global_position", orig_global_pos, 0.18).set_trans(Tween.TRANS_QUAD)
+	await tw_return.finished
 	
 	if not target.is_alive():
-		append_log("[color=gray]" + target.name + " 阵亡！[/color]")
 		spawn_floating_text(tgt_card.global_position + Vector2(10, -10), "阵亡", Color(0.6, 0.1, 0.1))
-		play_death_animation(tgt_card)
 		
+	render_all_cards()
 	await get_tree().create_timer(0.2).timeout
 
-func play_death_animation(card: Control) -> void:
-	var stamp = card.find_child("DeadStamp", true, false) as Label
-	if stamp:
-		stamp.visible = true
-		stamp.scale = Vector2(2.0, 2.0)
-		stamp.modulate.a = 0.0
-		var tw = create_tween().set_parallel(true)
-		tw.tween_property(stamp, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_BOUNCE)
-		tw.tween_property(stamp, "modulate:a", 1.0, 0.2)
-		tw.tween_property(card, "modulate", Color(0.4, 0.4, 0.4, 0.7), 0.2)
-
 func spawn_big_miss_text(global_pos: Vector2) -> void:
+	if not is_inside_tree():
+		return
 	var lbl = Label.new()
 	lbl.text = "MISS!"
+	lbl.add_theme_font_size_override("font_size", 24)
+	lbl.add_theme_color_override("font_color", Color(0.2, 0.8, 1.0))
 	lbl.global_position = global_pos
-	lbl.add_theme_font_size_override("font_size", 30)
-	lbl.add_theme_color_override("font_color", Color(0.2, 0.95, 1.0))
-	lbl.add_theme_color_override("font_outline_color", Color(0, 0.15, 0.3))
-	lbl.add_theme_constant_override("outline_size", 6)
+	lbl.scale = Vector2(0.5, 0.5)
+	lbl.pivot_offset = Vector2(30, 15)
 	fx_layer.add_child(lbl)
 	
 	var tw = create_tween().set_parallel(true)
-	tw.tween_property(lbl, "global_position:y", global_pos.y - 50.0, 0.75).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(lbl, "scale", Vector2(1.2, 1.2), 0.25)
+	tw.tween_property(lbl, "global_position", global_pos + Vector2(0, -40), 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lbl, "scale", Vector2(1.3, 1.3), 0.2)
 	tw.chain().tween_property(lbl, "scale", Vector2(1.0, 1.0), 0.2)
-	tw.tween_property(lbl, "modulate:a", 0.0, 0.75).set_delay(0.3)
-	tw.chain().tween_callback(lbl.queue_free)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.6)
+	
+	await tw.finished
+	if is_instance_valid(lbl):
+		lbl.queue_free()
 
 func spawn_floating_text(global_pos: Vector2, text: String, color: Color) -> void:
+	if not is_inside_tree():
+		return
 	var lbl = Label.new()
 	lbl.text = text
-	lbl.global_position = global_pos
-	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_font_size_override("font_size", 16)
 	lbl.add_theme_color_override("font_color", color)
-	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-	lbl.add_theme_constant_override("outline_size", 4)
+	lbl.global_position = global_pos
 	fx_layer.add_child(lbl)
 	
 	var tw = create_tween().set_parallel(true)
-	tw.tween_property(lbl, "global_position:y", global_pos.y - 45.0, 0.65).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tw.tween_property(lbl, "modulate:a", 0.0, 0.65).set_delay(0.25)
-	tw.chain().tween_callback(lbl.queue_free)
+	tw.tween_property(lbl, "global_position", global_pos + Vector2(0, -35), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lbl, "modulate:a", 0.0, 0.5)
+	
+	await tw.finished
+	if is_instance_valid(lbl):
+		lbl.queue_free()
 
 func check_battle_over() -> bool:
-	var player_alive = false
-	for p in player_units.keys():
-		if player_units[p].is_alive():
-			player_alive = true
-			break
+	var p_alive = 0
+	for u in player_units.values():
+		if (u as BattleUnit).is_alive():
+			p_alive += 1
 			
-	var enemy_alive = false
-	for p in enemy_units.keys():
-		if enemy_units[p].is_alive():
-			enemy_alive = true
-			break
+	var e_alive = 0
+	for u in enemy_units.values():
+		if (u as BattleUnit).is_alive():
+			e_alive += 1
 			
-	if not player_alive or not enemy_alive:
-		is_battle_running = false
-		GameData.is_in_battle = false # 战斗结束取消标记
+	if p_alive == 0 or e_alive == 0:
+		if is_reward_given:
+			return true
+		is_reward_given = true
 		
-		if not is_reward_given:
-			is_reward_given = true
-			if player_alive:
-				append_log("
-[color=green]======================[/color]")
-				append_log("[color=green]  战斗大捷！玩家获得胜利！  [/color]")
-				append_log("[color=green]  战利品：金币 +100，经验池 +100！  [/color]")
-				append_log("[color=green]======================[/color]")
-				GameData.player_gold += 100
-				GameData.player_exp_pool += 100
-				GameData.emit_signal("gold_changed")
-				GameData.emit_signal("exp_changed")
-			else:
-				append_log("
-[color=red]======================[/color]")
-				append_log("[color=red]  惨遭败北！电脑获得胜利！  [/color]")
-				append_log("[color=red]======================[/color]")
+		is_battle_running = false
+		GameData.is_in_battle = false
+		btn_start.disabled = false
+		btn_skip.disabled = true
+		
+		if p_alive > 0:
+			append_log("
+[color=gold]🎉 战斗大捷！全歼敌军！[/color]")
+			append_log("[color=green]获得战利品：金币 +100，共享经验 +100[/color]")
+			GameData.player_gold += 100
+			GameData.player_exp_pool += 100
+			GameData.has_unsaved_changes = true
+		else:
+			append_log("
+[color=red]☠️ 遗憾败北！全军覆没！[/color]")
 		return true
 	return false
 
-func render_all_cards() -> void:
-	for pos in range(1, 10):
-		var card = player_cards[pos]
-		render_unit_card(card, player_units.get(pos), pos, true)
-
-	for pos in range(1, 10):
-		var card = enemy_cards[pos]
-		render_unit_card(card, enemy_units.get(pos), pos, false)
-
-func render_unit_card(card: Control, u: BattleUnit, pos: int, is_player: bool) -> void:
-	var pos_lbl = card.find_child("PosLbl", true, false) as Label
-	var name_lbl = card.find_child("NameLbl", true, false) as Label
-	var hp_bar = card.find_child("HpBar", true, false) as ProgressBar
-	var hp_lbl = hp_bar.find_child("HpLbl", true, false) as Label
-	var mp_bar = card.find_child("MpBar", true, false) as ProgressBar
-	var mp_lbl = mp_bar.find_child("MpLbl", true, false) as Label
-	var stamp = card.find_child("DeadStamp", true, false) as Label
-	var troop_stage = card.find_child("TroopStage", true, false) as Control
-
-	if u != null:
-		pos_lbl.text = str(pos) + "号位 [" + u.troop_type + "] Lv." + str(u.level)
-		name_lbl.text = u.name
-		hp_bar.max_value = u.max_hp
-		hp_bar.value = u.current_hp
-		
-		var hp_percent = int(float(u.current_hp) / float(u.max_hp) * 100.0)
-		hp_lbl.text = str(u.current_hp) + "/" + str(u.max_hp) + " (" + str(hp_percent) + "%)"
-		
-		mp_bar.max_value = 100
-		mp_bar.value = u.mp
-		mp_lbl.text = "士气: " + str(u.mp) + "/100"
-		
-		var soldier_count = 9
-		if u.current_hp <= 0:
-			soldier_count = 1
-		elif hp_percent <= 25:
-			soldier_count = 3
-		elif hp_percent <= 50:
-			soldier_count = 5
-		elif hp_percent <= 75:
-			soldier_count = 7
-		else:
-			soldier_count = 9
-
-		var tex: Texture2D = null
-		if u.texture_path != "" and ResourceLoader.exists(u.texture_path):
-			tex = load(u.texture_path)
-
-		for i in range(9):
-			var sol_rect = troop_stage.get_child(i) as TextureRect
-			sol_rect.texture = tex
-			sol_rect.flip_h = not is_player
-			
-			if i < soldier_count:
-				sol_rect.visible = true
-			else:
-				sol_rect.visible = false
-				
-		update_troop_layout(troop_stage)
-		
-		if not u.is_alive():
-			stamp.visible = true
-			card.modulate = Color(0.4, 0.4, 0.4, 0.7)
-		else:
-			stamp.visible = false
-			card.modulate = Color(1, 1, 1)
-	else:
-		pos_lbl.text = str(pos) + "号位 (空)"
-		pos_lbl.add_theme_color_override("font_color", Color(0.5, 0.45, 0.35, 0.5))
-		name_lbl.text = ""
-		hp_bar.value = 0
-		hp_lbl.text = ""
-		mp_bar.value = 0
-		mp_lbl.text = ""
-		stamp.visible = false
-		card.modulate = Color(1, 1, 1)
-		for i in range(9):
-			var sol_rect = troop_stage.get_child(i) as TextureRect
-			sol_rect.texture = null
-			sol_rect.visible = false
-
 func append_log(msg: String) -> void:
-	log_text.text += "
-" + msg
-	call_deferred("_scroll_log_to_bottom")
+	log_text.text += msg + "
+"
+	_scroll_log_to_bottom()
 
 func _scroll_log_to_bottom() -> void:
 	if not is_inside_tree() or get_tree() == null:
@@ -853,7 +812,4 @@ func _scroll_log_to_bottom() -> void:
 	await get_tree().process_frame
 	if not is_inside_tree() or get_tree() == null:
 		return
-	log_scroll.scroll_vertical = int(log_text.get_content_height()) + 99999
-	var v_bar = log_scroll.get_v_scroll_bar()
-	if v_bar:
-		v_bar.value = v_bar.max_value
+	log_scroll.scroll_vertical = 99999
