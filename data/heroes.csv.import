@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://cjhg1l0d7aqxn"
+
+[deps]
+
+files=["res://data/heroes.name.translation", "res://data/heroes.quality.translation", "res://data/heroes.troop.translation", "res://data/heroes.hp.translation", "res://data/heroes.atk.translation", "res://data/heroes.def.translation", "res://data/heroes.satk.translation", "res://data/heroes.sdef.translation", "res://data/heroes.spd.translation", "res://data/heroes.color.translation"]
+
+source_file="res://data/heroes.csv"
+dest_files=["res://data/heroes.name.translation", "res://data/heroes.quality.translation", "res://data/heroes.troop.translation", "res://data/heroes.hp.translation", "res://data/heroes.atk.translation", "res://data/heroes.def.translation", "res://data/heroes.satk.translation", "res://data/heroes.sdef.translation", "res://data/heroes.spd.translation", "res://data/heroes.color.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://byjxdxfejrtf4"
+
+[deps]
+
+files=["res://data/troops.name.translation", "res://data/troops.type.translation", "res://data/troops.atk.translation", "res://data/troops.def.translation", "res://data/troops.satk.translation", "res://data/troops.sdef.translation", "res://data/troops.evade.translation", "res://data/troops.atk.translation", "res://data/troops.skill.translation", "res://data/troops.skill.translation", "res://data/troops.anim.translation", "res://data/troops.texture.translation"]
+
+source_file="res://data/troops.csv"
+dest_files=["res://data/troops.name.translation", "res://data/troops.type.translation", "res://data/troops.atk.translation", "res://data/troops.def.translation", "res://data/troops.satk.translation", "res://data/troops.sdef.translation", "res://data/troops.evade.translation", "res://data/troops.atk.translation", "res://data/troops.skill.translation", "res://data/troops.skill.translation", "res://data/troops.anim.translation", "res://data/troops.texture.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

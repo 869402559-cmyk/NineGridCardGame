@@ -119,7 +119,7 @@ func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 	
 	var vbox = VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.theme_override_constants.separation = 1
+	vbox.add_theme_constant_override("separation", 1)
 	card.add_child(vbox)
 	
 	var combined = GameData.calc_combined_stats(hero)
