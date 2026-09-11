@@ -1,0 +1,127 @@
+[gd_scene load_steps=2 format=3 uid="uid://d1e2s3m4i5"]
+
+[ext_resource type="Script" path="res://scripts/DismissModal.gd" id="1_dismiss"]
+
+[node name="DismissModal" type="ColorRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.8)
+script = ExtResource("1_dismiss")
+
+[node name="Panel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(900, 580)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -450.0
+offset_top = -290.0
+offset_right = 450.0
+offset_bottom = 290.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="TitleBox" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="TitleLbl" type="Label" parent="Panel/Margin/VBox/TitleBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 22
+text = "🚪 解雇武将 (仅限制 Lv.1 且未上阵武将)"
+
+[node name="BtnClose" type="Button" parent="Panel/Margin/VBox/TitleBox"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+text = "❌"
+
+[node name="FilterBox" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="FilterLbl" type="Label" parent="Panel/Margin/VBox/FilterBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "品质快速全选:"
+
+[node name="BtnSelectN" type="Button" parent="Panel/Margin/VBox/FilterBox"]
+custom_minimum_size = Vector2(70, 32)
+layout_mode = 2
+text = "全选 N"
+
+[node name="BtnSelectR" type="Button" parent="Panel/Margin/VBox/FilterBox"]
+custom_minimum_size = Vector2(70, 32)
+layout_mode = 2
+text = "全选 R"
+
+[node name="BtnSelectSR" type="Button" parent="Panel/Margin/VBox/FilterBox"]
+custom_minimum_size = Vector2(70, 32)
+layout_mode = 2
+text = "全选 SR"
+
+[node name="BtnSelectSSR" type="Button" parent="Panel/Margin/VBox/FilterBox"]
+custom_minimum_size = Vector2(80, 32)
+layout_mode = 2
+text = "全选 SSR"
+
+[node name="BtnSelectUR" type="Button" parent="Panel/Margin/VBox/FilterBox"]
+custom_minimum_size = Vector2(70, 32)
+layout_mode = 2
+text = "全选 UR"
+
+[node name="VSeparator" type="VSeparator" parent="Panel/Margin/VBox/FilterBox"]
+layout_mode = 2
+
+[node name="BtnSelectAllValid" type="Button" parent="Panel/Margin/VBox/FilterBox"]
+custom_minimum_size = Vector2(110, 32)
+layout_mode = 2
+text = "全选所有可解雇"
+
+[node name="BtnClearSelect" type="Button" parent="Panel/Margin/VBox/FilterBox"]
+custom_minimum_size = Vector2(80, 32)
+layout_mode = 2
+text = "反选/清空"
+
+[node name="Scroll" type="ScrollContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ListVBox" type="VBoxContainer" parent="Panel/Margin/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="BottomBox" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="SummaryLbl" type="Label" parent="Panel/Margin/VBox/BottomBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "已选择: 0 人 | 预计可获得金币: 0"
+
+[node name="BtnConfirmDismiss" type="Button" parent="Panel/Margin/VBox/BottomBox"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 17
+text = "🗑️ 确认解雇"

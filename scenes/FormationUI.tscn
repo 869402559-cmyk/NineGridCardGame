@@ -35,16 +35,23 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
-text = "已拥有英雄 (拖拽至阵型 / 双击查看)"
+text = "已拥有英雄 (拖拽/双击查看)"
+
+[node name="BtnDismiss" type="Button" parent="HBox/LeftPanel/TitleBox"]
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 14
+text = "🚪 解雇"
 
 [node name="BtnAuto" type="Button" parent="HBox/LeftPanel/TitleBox"]
-custom_minimum_size = Vector2(90, 36)
+custom_minimum_size = Vector2(80, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "一键上阵"
 
 [node name="BtnClear" type="Button" parent="HBox/LeftPanel/TitleBox"]
-custom_minimum_size = Vector2(80, 36)
+custom_minimum_size = Vector2(65, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "清空"

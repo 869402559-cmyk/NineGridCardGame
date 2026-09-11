@@ -24,42 +24,47 @@ var cleared_difficulties: Array = []  # 已通关难度
 var is_in_battle: bool = false
 var has_unsaved_changes: bool = false
 
-# 五级品质视觉配置表 (UR, SSR, SR, R, N)
+# 五级品质视觉配置表 (UR, SSR, SR, R, N) 及解雇返还金币基数
 const QUALITY_CONFIGS: Dictionary = {
 	"UR": {
 		"label_color": Color("#FF2255"),
 		"border_color": Color("#FFD700"),
 		"bg_color": Color(0.35, 0.05, 0.12, 0.95),
 		"border_width": 3,
-		"rank_weight": 5
+		"rank_weight": 5,
+		"dismiss_gold": 2000
 	},
 	"SSR": {
 		"label_color": Color("#FFAA00"),
 		"border_color": Color("#FFAA00"),
 		"bg_color": Color(0.3, 0.2, 0.05, 0.95),
 		"border_width": 2,
-		"rank_weight": 4
+		"rank_weight": 4,
+		"dismiss_gold": 800
 	},
 	"SR": {
 		"label_color": Color("#AA33FF"),
 		"border_color": Color("#AA33FF"),
 		"bg_color": Color(0.2, 0.08, 0.32, 0.95),
 		"border_width": 2,
-		"rank_weight": 3
+		"rank_weight": 3,
+		"dismiss_gold": 300
 	},
 	"R": {
 		"label_color": Color("#3399FF"),
 		"border_color": Color("#3399FF"),
 		"bg_color": Color(0.08, 0.18, 0.32, 0.95),
 		"border_width": 1,
-		"rank_weight": 2
+		"rank_weight": 2,
+		"dismiss_gold": 100
 	},
 	"N": {
 		"label_color": Color("#AAAAAA"),
 		"border_color": Color("#666666"),
 		"bg_color": Color(0.18, 0.18, 0.18, 0.95),
 		"border_width": 1,
-		"rank_weight": 1
+		"rank_weight": 1,
+		"dismiss_gold": 30
 	}
 }
 
@@ -88,7 +93,6 @@ func parse_troops_csv(file_path: String) -> void:
 		var line = file.get_line().strip_edges()
 		if line == "":
 			continue
-		# 自动过滤 UTF-8 BOM 头
 		if line_idx == 0 and line.begins_with("\ufeff"):
 			line = line.substr(1)
 		var parts = line.split(",")
@@ -119,7 +123,6 @@ func parse_heroes_csv(file_path: String) -> void:
 		var line = file.get_line().strip_edges()
 		if line == "":
 			continue
-		# 自动过滤 UTF-8 BOM 头
 		if line_idx == 0 and line.begins_with("\ufeff"):
 			line = line.substr(1)
 		var parts = line.split(",")
@@ -150,7 +153,6 @@ func parse_enemies_csv(file_path: String) -> void:
 		var line = file.get_line().strip_edges()
 		if line == "":
 			continue
-		# 自动过滤 UTF-8 BOM 头
 		if line_idx == 0 and line.begins_with("\ufeff"):
 			line = line.substr(1)
 		var parts = line.split(",")
@@ -183,7 +185,6 @@ func ensure_default_accounts() -> void:
 		}
 		save_all_accounts_data(accounts)
 	else:
-		# 确保已有的 admin 账号也有 1 亿金币和经验
 		if accounts["admin"].has("save_data"):
 			accounts["admin"]["save_data"]["gold"] = max(accounts["admin"]["save_data"].get("gold", 0), 100000000)
 			accounts["admin"]["save_data"]["exp_pool"] = max(accounts["admin"]["save_data"].get("exp_pool", 0), 100000000)
@@ -356,6 +357,12 @@ func get_troop_by_id(troop_id: String) -> Dictionary:
 		"texture_path": ""
 	})
 
+func get_hero_by_uuid(uuid: String) -> Dictionary:
+	for h in player_heroes:
+		if h.get("uuid", "") == uuid:
+			return h
+	return {}
+
 func add_hero(hero_template_id: String) -> Dictionary:
 	var tmpl = HERO_TEMPLATES.get(hero_template_id)
 	if tmpl == null:
@@ -369,6 +376,48 @@ func add_hero(hero_template_id: String) -> Dictionary:
 
 func get_upgrade_cost(current_level: int) -> int:
 	return current_level * 100
+
+# 计算累计升级到当前等级消耗的总经验值
+func get_total_spent_exp(level: int) -> int:
+	var total = 0
+	for l in range(1, level):
+		total += l * 100
+	return total
+
+# 计算洗练洗等级可返还的经验（80% 固定比例）
+func get_reset_level_refund_exp(hero: Dictionary) -> int:
+	var level = hero.get("level", 1)
+	if level <= 1:
+		return 0
+	var total_spent = get_total_spent_exp(level)
+	return int(total_spent * 0.8)
+
+# 洗练武将等级重置为 1 级，恢复基础属性，返还 80% 经验
+func reset_hero_level(hero_uuid: String) -> int:
+	var h = null
+	for hero in player_heroes:
+		if hero["uuid"] == hero_uuid:
+			h = hero
+			break
+	if h == null or h.get("level", 1) <= 1:
+		return 0
+		
+	var refund_exp = get_reset_level_refund_exp(h)
+	var tid = h.get("id", "")
+	if HERO_TEMPLATES.has(tid):
+		var tmpl = HERO_TEMPLATES[tid]
+		h["level"] = 1
+		h["hp"] = tmpl.get("hp", 1000)
+		h["atk"] = tmpl.get("atk", 100)
+		h["def"] = tmpl.get("def", 50)
+		h["satk"] = tmpl.get("satk", 100)
+		h["sdef"] = tmpl.get("sdef", 50)
+		h["spd"] = tmpl.get("spd", 100)
+		
+	player_exp_pool += refund_exp
+	has_unsaved_changes = true
+	emit_signal("exp_changed")
+	return refund_exp
 
 func upgrade_hero(hero_uuid: String) -> bool:
 	var h = null
@@ -392,6 +441,36 @@ func upgrade_hero(hero_uuid: String) -> bool:
 		emit_signal("exp_changed")
 		return true
 	return false
+
+# 批量解雇武将逻辑 (返回获得的金币)
+func dismiss_heroes(hero_uuids: Array) -> int:
+	var equipped_uuids = []
+	for pos in player_formation.keys():
+		var uid = player_formation[pos]
+		if uid != null:
+			equipped_uuids.append(uid)
+			
+	var total_gold_gained = 0
+	var heroes_to_keep = []
+	
+	for h in player_heroes:
+		var uid = h.get("uuid", "")
+		if uid in hero_uuids:
+			# 检查限制：已上阵或等级不为 1 级的武将跳过，不能解雇
+			if uid in equipped_uuids or h.get("level", 1) > 1:
+				heroes_to_keep.append(h)
+			else:
+				var q = h.get("quality", "N")
+				var q_cfg = get_quality_config(q)
+				total_gold_gained += q_cfg.get("dismiss_gold", 30)
+		else:
+			heroes_to_keep.append(h)
+			
+	player_heroes = heroes_to_keep
+	player_gold += total_gold_gained
+	has_unsaved_changes = true
+	emit_signal("gold_changed")
+	return total_gold_gained
 
 func calc_combined_stats(hero: Dictionary) -> Dictionary:
 	var troop = get_troop_by_id(hero.get("troop_id", "t_cavalry"))

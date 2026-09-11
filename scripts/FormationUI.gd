@@ -1,6 +1,7 @@
 extends Control
 
 @onready var hero_grid: GridContainer = $HBox/LeftPanel/HeroScroll/HeroGrid
+@onready var btn_dismiss: Button = $HBox/LeftPanel/TitleBox/BtnDismiss
 @onready var btn_auto: Button = $HBox/LeftPanel/TitleBox/BtnAuto
 @onready var btn_clear: Button = $HBox/LeftPanel/TitleBox/BtnClear
 @onready var grid_container: GridContainer = $HBox/RightPanel/GridContainer
@@ -11,6 +12,8 @@ var slot_cards: Array = [] # 1..9 slot controls
 func _ready() -> void:
 	btn_auto.pressed.connect(_on_auto_fill)
 	btn_clear.pressed.connect(_on_clear)
+	if btn_dismiss:
+		btn_dismiss.pressed.connect(_on_open_dismiss_modal)
 	
 	# 设置左侧整个面板区域（LeftPanel）为显式下阵目标（精准接收拖回的单个卡牌）
 	var left_panel = $HBox/LeftPanel
@@ -88,8 +91,8 @@ func refresh_left_hero_grid() -> void:
 		if a_eq != b_eq:
 			return a_eq # 已上阵在前
 			
-		var q_a = GameData.get_quality_config(a.get("quality", "N"))["rank"]
-		var q_b = GameData.get_quality_config(b.get("quality", "N"))["rank"]
+		var q_a = GameData.get_quality_config(a.get("quality", "N"))["rank_weight"]
+		var q_b = GameData.get_quality_config(b.get("quality", "N"))["rank_weight"]
 		if q_a != q_b:
 			return q_a > q_b
 			
@@ -123,89 +126,96 @@ func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 	var vbox = VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_theme_constant_override("separation", 1)
-	card.add_child(vbox)
 	
 	var combined = GameData.calc_combined_stats(hero)
 	
-	var top_info = Label.new()
-	top_info.text = combined["troop_type"] + " · Lv." + str(hero.get("level", 1))
-	top_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	top_info.add_theme_font_size_override("font_size", 10)
-	top_info.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 0.8))
-	vbox.add_child(top_info)
+	var top_lbl = Label.new()
+	top_lbl.text = combined["troop_type"] + " · Lv." + str(hero.get("level", 1))
+	top_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	top_lbl.add_theme_font_size_override("font_size", 10)
+	top_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
 	
 	var img = TextureRect.new()
-	img.custom_minimum_size = Vector2(50, 65)
+	img.custom_minimum_size = Vector2(50, 60)
 	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	img.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	if combined["texture_path"] != "" and ResourceLoader.exists(combined["texture_path"]):
 		img.texture = load(combined["texture_path"])
-	vbox.add_child(img)
-	
+		
 	var name_lbl = Label.new()
-	var eq_str = " [已上阵]" if is_equipped else ""
-	name_lbl.text = "[" + hero.get("quality", "N") + "] " + hero.get("name", "武将") + eq_str
+	name_lbl.text = "[" + hero.get("quality", "N") + "] " + hero["name"]
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 10)
-	if is_equipped:
-		name_lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))
-	else:
-		name_lbl.add_theme_color_override("font_color", q_cfg["label_color"])
+	name_lbl.add_theme_font_size_override("font_size", 12)
+	name_lbl.add_theme_color_override("font_color", q_cfg["label_color"])
+	
+	vbox.add_child(top_lbl)
+	vbox.add_child(img)
 	vbox.add_child(name_lbl)
 	
-	card.gui_input.connect(func(event: InputEvent):
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			if event.double_click:
-				open_hero_detail(hero["uuid"])
-	)
-	
+	if is_equipped:
+		var tag = Label.new()
+		tag.text = "(已上阵)"
+		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tag.add_theme_font_size_override("font_size", 10)
+		tag.add_theme_color_override("font_color", Color(0.2, 0.9, 0.3))
+		vbox.add_child(tag)
+		
+	card.add_child(vbox)
 	return card
 
 func refresh_right_formation_grid() -> void:
 	var count = 0
 	for pos in range(1, 10):
-		var card = slot_cards[pos - 1] as Control
-		var uuid = GameData.player_formation[pos]
-		var pos_lbl = card.find_child("PosLbl", true, false) as Label
-		var img = card.find_child("Avatar", true, false) as TextureRect
-		var name_lbl = card.find_child("NameLbl", true, false) as Label
+		var card = slot_cards[pos - 1] as PanelContainer
+		var vbox = card.get_node("VBox")
+		var pos_lbl = vbox.get_node("PosLbl") as Label
+		var name_lbl = vbox.get_node("NameLbl") as Label
+		var img = vbox.get_node("Avatar") as TextureRect
 		
-		if uuid != null:
-			count += 1
-			var hero = GameData.get_hero_by_uuid(uuid)
-			var combined = GameData.calc_combined_stats(hero)
-			var q_cfg = GameData.get_quality_config(hero.get("quality", "N"))
-			
-			var style = StyleBoxFlat.new()
-			style.bg_color = q_cfg["bg_color"]
-			style.set_corner_radius_all(6)
-			style.border_width_bottom = q_cfg["border_width"]
-			style.border_width_left = q_cfg["border_width"]
-			style.border_width_right = q_cfg["border_width"]
-			style.border_width_top = q_cfg["border_width"]
-			style.border_color = q_cfg["border_color"]
-			card.add_theme_stylebox_override("panel", style)
-			
-			pos_lbl.text = str(pos) + "号位 [" + combined["troop_type"] + "]"
-			pos_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-			name_lbl.text = "[" + hero.get("quality", "N") + "] " + hero.get("name", "未知") + "
-Lv." + str(hero.get("level", 1))
-			name_lbl.add_theme_color_override("font_color", q_cfg["label_color"])
-			
-			if combined["texture_path"] != "" and ResourceLoader.exists(combined["texture_path"]):
-				img.texture = load(combined["texture_path"])
+		var hero_uuid = GameData.player_formation[pos]
+		if hero_uuid != null:
+			var hero = GameData.get_hero_by_uuid(hero_uuid)
+			if not hero.is_empty():
+				count += 1
+				var q_cfg = GameData.get_quality_config(hero.get("quality", "N"))
+				var style = StyleBoxFlat.new()
+				style.bg_color = q_cfg["bg_color"]
+				style.set_corner_radius_all(6)
+				style.border_width_bottom = q_cfg["border_width"]
+				style.border_width_left = q_cfg["border_width"]
+				style.border_width_right = q_cfg["border_width"]
+				style.border_width_top = q_cfg["border_width"]
+				style.border_color = q_cfg["border_color"]
+				card.add_theme_stylebox_override("panel", style)
+				
+				var combined = GameData.calc_combined_stats(hero)
+				pos_lbl.text = str(pos) + "号位 · Lv." + str(hero.get("level", 1))
+				pos_lbl.add_theme_color_override("font_color", Color(0.9, 0.85, 0.5))
+				name_lbl.text = "[" + hero.get("quality", "N") + "] " + hero["name"]
+				name_lbl.add_theme_color_override("font_color", q_cfg["label_color"])
+				
+				if combined["texture_path"] != "" and ResourceLoader.exists(combined["texture_path"]):
+					img.texture = load(combined["texture_path"])
+				else:
+					img.texture = null
 			else:
+				var style = StyleBoxFlat.new()
+				style.bg_color = Color(0.12, 0.12, 0.15, 0.7)
+				style.set_corner_radius_all(6)
+				style.border_color = Color(0.25, 0.25, 0.3)
+				card.add_theme_stylebox_override("panel", style)
+				
+				pos_lbl.text = str(pos) + "号位"
+				pos_lbl.add_theme_color_override("font_color", Color(0.4, 0.35, 0.25))
+				name_lbl.text = "(空位)"
+				name_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 				img.texture = null
 		else:
 			var style = StyleBoxFlat.new()
-			style.bg_color = Color(0.12, 0.12, 0.12, 0.5)
+			style.bg_color = Color(0.12, 0.12, 0.15, 0.7)
 			style.set_corner_radius_all(6)
-			style.border_width_bottom = 1
-			style.border_width_left = 1
-			style.border_width_right = 1
-			style.border_width_top = 1
-			style.border_color = Color(0.3, 0.3, 0.3, 0.5)
+			style.border_color = Color(0.25, 0.25, 0.3)
 			card.add_theme_stylebox_override("panel", style)
 			
 			pos_lbl.text = str(pos) + "号位"
@@ -224,6 +234,14 @@ func open_hero_detail(uuid: String) -> void:
 		modal.setup(uuid)
 		modal.updated.connect(refresh_all)
 
+func _on_open_dismiss_modal() -> void:
+	var modal_scene = load("res://scenes/DismissModal.tscn")
+	if modal_scene:
+		var modal = modal_scene.instantiate()
+		add_child(modal)
+		if modal.has_signal("dismissed"):
+			modal.dismissed.connect(refresh_all)
+
 func _on_auto_fill() -> void:
 	GameData.auto_fill_formation()
 	refresh_all()
@@ -239,92 +257,132 @@ class LeftPanelDropScript extends Control:
 		return typeof(data) == TYPE_DICTIONARY and data.get("type") == "hero_card" and data.get("from_slot", 0) > 0
 
 	func _drop_data(_at_position: Vector2, data: Variant) -> void:
-		var dragged_uuid = data.get("uuid") as String
-		var from_slot = data.get("from_slot", 0) as int
-		
-		# 仅将这个特定被拖拽的武将从原槽位移除（下阵）
-		if from_slot > 0 and GameData.player_formation[from_slot] == dragged_uuid:
-			GameData.player_formation[from_slot] = null
-			GameData.has_unsaved_changes = true
-			
-		var p_node: Node = self
-		while p_node:
-			if p_node.has_method("refresh_all"):
-				p_node.refresh_all()
-				break
-			p_node = p_node.get_parent()
+		if typeof(data) == TYPE_DICTIONARY and data.get("type") == "hero_card":
+			var from_slot = data.get("from_slot", 0)
+			if from_slot > 0 and from_slot <= 9:
+				GameData.player_formation[from_slot] = null
+				var parent_ui = get_parent()
+				while parent_ui != null and not parent_ui.has_method("refresh_all"):
+					parent_ui = parent_ui.get_parent()
+				if parent_ui and parent_ui.has_method("refresh_all"):
+					parent_ui.refresh_all()
 
-# 内部类：左侧列表武将卡片拖拽源
+# 内部类：左侧英雄卡片拖拽与双击响应脚本
 class HeroCardScript extends PanelContainer:
+	var double_click_timer: float = 0.0
+	
 	func _get_drag_data(_at_position: Vector2) -> Variant:
-		var uuid = get_meta("hero_uuid")
-		var preview = Control.new()
-		var lbl = Label.new()
-		var hero = GameData.get_hero_by_uuid(uuid)
-		var q_cfg = GameData.get_quality_config(hero.get("quality", "N"))
-		lbl.text = "[" + hero.get("quality", "") + "] " + hero.get("name", "")
-		lbl.add_theme_font_size_override("font_size", 14)
-		lbl.add_theme_color_override("font_color", q_cfg["label_color"])
-		preview.add_child(lbl)
-		set_drag_preview(preview)
-		return { "type": "hero_card", "uuid": uuid, "from_slot": 0 }
-
-# 内部类：九宫格阵型槽位（支持接收放置、从槽位拖拽、双击下阵）
-class SlotCardScript extends PanelContainer:
-	func _get_drag_data(_at_position: Vector2) -> Variant:
-		var pos = get_meta("slot_pos") as int
-		var uuid = GameData.player_formation[pos]
-		if uuid == null:
+		var uuid = get_meta("hero_uuid", "")
+		if uuid == "":
 			return null
+			
+		var preview = PanelContainer.new()
+		preview.custom_minimum_size = Vector2(80, 100)
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.2, 0.2, 0.2, 0.8)
+		style.set_corner_radius_all(4)
+		preview.add_theme_stylebox_override("panel", style)
 		
-		var preview = Control.new()
-		var lbl = Label.new()
 		var hero = GameData.get_hero_by_uuid(uuid)
-		var q_cfg = GameData.get_quality_config(hero.get("quality", "N"))
-		lbl.text = "[" + hero.get("quality", "") + "] " + hero.get("name", "")
-		lbl.add_theme_font_size_override("font_size", 14)
-		lbl.add_theme_color_override("font_color", q_cfg["label_color"])
+		var lbl = Label.new()
+		lbl.text = hero.get("name", "卡牌")
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		preview.add_child(lbl)
+		
 		set_drag_preview(preview)
-		return { "type": "hero_card", "uuid": uuid, "from_slot": pos }
+		return {
+			"type": "hero_card",
+			"uuid": uuid,
+			"from_slot": 0
+		}
+
+	func _gui_input(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			var now = Time.get_ticks_msec() / 1000.0
+			if now - double_click_timer < 0.3:
+				var uuid = get_meta("hero_uuid", "")
+				if uuid != "":
+					var p = get_parent()
+					while p != null and not p.has_method("open_hero_detail"):
+						p = p.get_parent()
+					if p and p.has_method("open_hero_detail"):
+						p.open_hero_detail(uuid)
+			double_click_timer = now
+
+# 内部类：右侧九宫格槽位卡牌（支持放置拖入卡牌 & 槽位间对拽拖换）
+class SlotCardScript extends PanelContainer:
+	var double_click_timer: float = 0.0
+	
+	func _get_drag_data(_at_position: Vector2) -> Variant:
+		var pos = get_meta("slot_pos", 0)
+		var hero_uuid = GameData.player_formation[pos]
+		if hero_uuid == null or hero_uuid == "":
+			return null
+			
+		var preview = PanelContainer.new()
+		preview.custom_minimum_size = Vector2(90, 120)
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.3, 0.3, 0.3, 0.85)
+		style.set_corner_radius_all(4)
+		preview.add_theme_stylebox_override("panel", style)
+		
+		var hero = GameData.get_hero_by_uuid(hero_uuid)
+		var lbl = Label.new()
+		lbl.text = hero.get("name", "卡牌")
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		preview.add_child(lbl)
+		
+		set_drag_preview(preview)
+		return {
+			"type": "hero_card",
+			"uuid": hero_uuid,
+			"from_slot": pos
+		}
 
 	func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 		return typeof(data) == TYPE_DICTIONARY and data.get("type") == "hero_card"
 
 	func _drop_data(_at_position: Vector2, data: Variant) -> void:
-		var target_pos = get_meta("slot_pos") as int
-		var dragged_uuid = data.get("uuid") as String
-		var from_slot = data.get("from_slot", 0) as int
-		
-		if from_slot > 0:
-			# 来自右侧九宫格另一个槽位：位置互换/移动
-			var target_uuid = GameData.player_formation[target_pos]
-			GameData.player_formation[target_pos] = dragged_uuid
-			GameData.player_formation[from_slot] = target_uuid
-		else:
-			# 来自左侧列表：放置上阵
-			for p in range(1, 10):
-				if GameData.player_formation[p] == dragged_uuid:
-					GameData.player_formation[p] = null
-					
-			var current_count = 0
-			for p in range(1, 10):
-				if GameData.player_formation[p] != null:
-					current_count += 1
-					
-			if current_count >= 5 and GameData.player_formation[target_pos] == null:
-				pass # 满5人无法放入空位
-			else:
-				GameData.player_formation[target_pos] = dragged_uuid
+		if typeof(data) != TYPE_DICTIONARY or data.get("type") != "hero_card":
+			return
 			
-		GameData.has_unsaved_changes = true
-		_notify_refresh()
+		var incoming_uuid = data.get("uuid", "")
+		var from_slot = data.get("from_slot", 0)
+		var target_slot = get_meta("slot_pos", 0)
+		
+		if target_slot < 1 or target_slot > 9:
+			return
+			
+		if from_slot == 0:
+			# 从左侧列表拖拽上阵到当前槽位
+			for p in range(1, 10):
+				if GameData.player_formation[p] == incoming_uuid:
+					GameData.player_formation[p] = null
+			GameData.player_formation[target_slot] = incoming_uuid
+		else:
+			# 从右侧九宫格槽位互相拖拽调整交换位置
+			var existing_uuid_at_target = GameData.player_formation[target_slot]
+			GameData.player_formation[target_slot] = incoming_uuid
+			GameData.player_formation[from_slot] = existing_uuid_at_target
+			
+		var parent_ui = get_parent()
+		while parent_ui != null and not parent_ui.has_method("refresh_all"):
+			parent_ui = parent_ui.get_parent()
+		if parent_ui and parent_ui.has_method("refresh_all"):
+			parent_ui.refresh_all()
 
-	# 移除过度敏感的 NOTIFICATION_DRAG_END 全清逻辑，只保留精确的目标放置下阵
-	func _notify_refresh() -> void:
-		var p_node: Node = self
-		while p_node:
-			if p_node.has_method("refresh_all"):
-				p_node.refresh_all()
-				break
-			p_node = p_node.get_parent()
+	func _gui_input(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			var now = Time.get_ticks_msec() / 1000.0
+			if now - double_click_timer < 0.3:
+				var pos = get_meta("slot_pos", 0)
+				var hero_uuid = GameData.player_formation[pos]
+				if hero_uuid != null and hero_uuid != "":
+					var p = get_parent()
+					while p != null and not p.has_method("open_hero_detail"):
+						p = p.get_parent()
+					if p and p.has_method("open_hero_detail"):
+						p.open_hero_detail(hero_uuid)
+			double_click_timer = now

@@ -4,6 +4,7 @@ extends ColorRect
 @onready var name_quality_lbl: Label = $Panel/Margin/HBox/LeftBox/InfoSubBox/NameQualityLbl
 @onready var level_lbl: Label = $Panel/Margin/HBox/LeftBox/InfoSubBox/LevelLbl
 @onready var btn_upgrade: Button = $Panel/Margin/HBox/LeftBox/BtnUpgrade
+@onready var btn_reset_level: Button = $Panel/Margin/HBox/LeftBox/BtnResetLevel
 @onready var btn_close: Button = $Panel/Margin/HBox/RightBox/TitleBox/BtnClose
 @onready var info_text: RichTextLabel = $Panel/Margin/HBox/RightBox/Scroll/InfoText
 
@@ -14,6 +15,8 @@ signal updated()
 func _ready() -> void:
 	btn_close.pressed.connect(queue_free)
 	btn_upgrade.pressed.connect(_on_upgrade_pressed)
+	if btn_reset_level:
+		btn_reset_level.pressed.connect(_on_reset_level_pressed)
 	if current_hero_uuid != "":
 		refresh_display()
 
@@ -55,15 +58,25 @@ func refresh_display() -> void:
 	else:
 		btn_upgrade.disabled = false
 		
+	var hero_lv = hero.get("level", 1)
+	if btn_reset_level:
+		if hero_lv > 1:
+			var refund_exp = GameData.get_reset_level_refund_exp(hero)
+			btn_reset_level.text = "🔄 洗练洗等级 (返还 " + str(refund_exp) + " 经验)"
+			btn_reset_level.disabled = false
+		else:
+			btn_reset_level.text = "🔄 已经是 Lv.1 (无须洗练)"
+			btn_reset_level.disabled = true
+		
 	if combined["texture_path"] != "" and ResourceLoader.exists(combined["texture_path"]):
 		avatar_texture.texture = load(combined["texture_path"])
 	else:
 		avatar_texture.texture = null
 		
 	var info_bbcode = ""
-	info_bbcode += "[color=" + q_cfg["color"].to_html() + "][b]👤 武将基础属性[/b][/color]
+	info_bbcode += "[color=" + q_cfg["label_color"].to_html() + "][b]👤 武将基础属性[/b][/color]
 "
-	info_bbcode += "• 姓名: " + hero.get("name", "") + " | 品质: [color=" + q_cfg["color"].to_html() + "]" + hero.get("quality", "") + "[/color]
+	info_bbcode += "• 姓名: " + hero.get("name", "") + " | 品质: [color=" + q_cfg["label_color"].to_html() + "]" + hero.get("quality", "") + "[/color]
 "
 	info_bbcode += "• 等级: Lv." + str(hero.get("level", 1)) + "
 "
@@ -107,5 +120,11 @@ func refresh_display() -> void:
 
 func _on_upgrade_pressed() -> void:
 	if GameData.upgrade_hero(current_hero_uuid):
+		refresh_display()
+		emit_signal("updated")
+
+func _on_reset_level_pressed() -> void:
+	var refund = GameData.reset_hero_level(current_hero_uuid)
+	if refund > 0:
 		refresh_display()
 		emit_signal("updated")
