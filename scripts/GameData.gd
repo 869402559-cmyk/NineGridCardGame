@@ -1,99 +1,79 @@
 extends Node
 
-# ---------------------------------------------------
-# CSV 配置表数据容器 (支持 Excel / WPS / 记事本 直接编辑导出)
-# ---------------------------------------------------
+signal gold_changed
+signal exp_changed
+signal save_status_changed(msg: String)
+
+# 全局数据表定义
 var HERO_TEMPLATES: Dictionary = {}
 var TROOP_TEMPLATES: Dictionary = {}
 var ENEMY_FORMATIONS_CSV: Dictionary = {}
 
-# ---------------------------------------------------
-# 账号与网游存档机制 (数据不手动点击【保存】不写入磁盘)
-# ---------------------------------------------------
-var ACCOUNTS_FILE: String = "user://accounts.json"
+# 账号与存档常量
+const ACCOUNTS_FILE = "user://accounts.json"
 
-var current_account: String = "" # 当前登录的用户账号
-var player_gold: int = 2000
-var player_exp_pool: int = 1500
-var player_heroes: Array = []
-var player_formation: Dictionary = {
-	1: null, 2: null, 3: null,
-	4: null, 5: null, 6: null,
-	7: null, 8: null, 9: null
-}
-var cleared_difficulties: Array = [] # 记录通关记录，如 ["Easy", "Normal"]
+# 当前登录账号与玩家持久化内存状态
+var current_account: String = ""
+var player_gold: int = 100000000
+var player_exp_pool: int = 100000000
+var player_heroes: Array = []       # 已拥有的英雄实例数组
+var player_formation: Dictionary = {} # 1..9 -> hero_uuid (或 null)
+var cleared_difficulties: Array = []  # 已通关难度
+
+# 全局状态标记
+var is_in_battle: bool = false
 var has_unsaved_changes: bool = false
-var is_in_battle: bool = false # 标记当前是否正在战斗中（战斗中禁用保存按钮）
 
-# ---------------------------------------------------
-# 五级品质视觉与外观配置 (UR, SSR, SR, R, N)
-# ---------------------------------------------------
-const QUALITY_CONFIGS = {
+# 五级品质视觉配置表 (UR, SSR, SR, R, N)
+const QUALITY_CONFIGS: Dictionary = {
 	"UR": {
-		"rank": 5,
-		"name": "UR",
-		"color": Color(1.0, 0.2, 0.35), # 闪耀赤金
-		"border_color": Color(1.0, 0.85, 0.2), # 金色边框
-		"bg_color": Color(0.28, 0.08, 0.12), # 暗赤金底色
+		"label_color": Color("#FF2255"),
+		"border_color": Color("#FFD700"),
+		"bg_color": Color(0.35, 0.05, 0.12, 0.95),
 		"border_width": 3,
-		"label_color": Color(1.0, 0.9, 0.4)
+		"rank_weight": 5
 	},
 	"SSR": {
-		"rank": 4,
-		"name": "SSR",
-		"color": Color(1.0, 0.7, 0.1), # 耀眼金
-		"border_color": Color(1.0, 0.8, 0.2), # 靓金边框
-		"bg_color": Color(0.25, 0.18, 0.05), # 暗金底色
+		"label_color": Color("#FFAA00"),
+		"border_color": Color("#FFAA00"),
+		"bg_color": Color(0.3, 0.2, 0.05, 0.95),
 		"border_width": 2,
-		"label_color": Color(1.0, 0.85, 0.3)
+		"rank_weight": 4
 	},
 	"SR": {
-		"rank": 3,
-		"name": "SR",
-		"color": Color(0.7, 0.3, 1.0), # 华丽紫
-		"border_color": Color(0.8, 0.4, 1.0), # 绚紫边框
-		"bg_color": Color(0.18, 0.08, 0.25), # 暗紫底色
+		"label_color": Color("#AA33FF"),
+		"border_color": Color("#AA33FF"),
+		"bg_color": Color(0.2, 0.08, 0.32, 0.95),
 		"border_width": 2,
-		"label_color": Color(0.85, 0.6, 1.0)
+		"rank_weight": 3
 	},
 	"R": {
-		"rank": 2,
-		"name": "R",
-		"color": Color(0.2, 0.6, 1.0), # 稳重蓝
-		"border_color": Color(0.3, 0.7, 1.0), # 湛蓝边框
-		"bg_color": Color(0.08, 0.15, 0.25), # 深蓝底色
+		"label_color": Color("#3399FF"),
+		"border_color": Color("#3399FF"),
+		"bg_color": Color(0.08, 0.18, 0.32, 0.95),
 		"border_width": 1,
-		"label_color": Color(0.5, 0.8, 1.0)
+		"rank_weight": 2
 	},
 	"N": {
-		"rank": 1,
-		"name": "N",
-		"color": Color(0.5, 0.5, 0.5), # 朴素灰
-		"border_color": Color(0.35, 0.35, 0.35), # 哑光灰边框
-		"bg_color": Color(0.12, 0.12, 0.12), # 极暗灰底色
+		"label_color": Color("#AAAAAA"),
+		"border_color": Color("#666666"),
+		"bg_color": Color(0.18, 0.18, 0.18, 0.95),
 		"border_width": 1,
-		"label_color": Color(0.65, 0.65, 0.65)
+		"rank_weight": 1
 	}
 }
 
-func get_quality_config(qual_str: String) -> Dictionary:
-	var key = qual_str.to_upper().strip_edges()
-	if QUALITY_CONFIGS.has(key):
-		return QUALITY_CONFIGS[key]
-	return QUALITY_CONFIGS["N"]
-
-signal gold_changed()
-signal exp_changed()
-signal save_status_changed(msg: String)
-
 func _ready() -> void:
-	load_csv_tables()
+	load_all_csv_data()
 	ensure_default_accounts()
 
 # ---------------------------------------------------
-# 1. CSV 表格解析器 (可完美用 Excel 拖拽修改增删武将/兵种/敌人)
+# 1. UTF-8 BOM CSV 解析器
 # ---------------------------------------------------
-func load_csv_tables() -> void:
+func load_all_all_csv() -> void:
+	load_all_csv_data()
+
+func load_all_csv_data() -> void:
 	parse_troops_csv("res://data/troops.csv")
 	parse_heroes_csv("res://data/heroes.csv")
 	parse_enemies_csv("res://data/enemies.csv")
@@ -192,12 +172,22 @@ func parse_enemies_csv(file_path: String) -> void:
 # ---------------------------------------------------
 func ensure_default_accounts() -> void:
 	var accounts = load_all_accounts_data()
+	var admin_default_save = get_default_new_account_save()
+	admin_default_save["gold"] = 100000000
+	admin_default_save["exp_pool"] = 100000000
+	
 	if not accounts.has("admin"):
 		accounts["admin"] = {
 			"password": "123456",
-			"save_data": get_default_new_account_save()
+			"save_data": admin_default_save
 		}
 		save_all_accounts_data(accounts)
+	else:
+		# 确保已有的 admin 账号也有 1 亿金币和经验
+		if accounts["admin"].has("save_data"):
+			accounts["admin"]["save_data"]["gold"] = max(accounts["admin"]["save_data"].get("gold", 0), 100000000)
+			accounts["admin"]["save_data"]["exp_pool"] = max(accounts["admin"]["save_data"].get("exp_pool", 0), 100000000)
+			save_all_accounts_data(accounts)
 
 func load_all_accounts_data() -> Dictionary:
 	if not FileAccess.file_exists(ACCOUNTS_FILE):
@@ -252,7 +242,7 @@ func login_account(username: String, pass_word: String) -> String:
 
 func get_default_new_account_save() -> Dictionary:
 	var initial_heroes = []
-	var init_ids = ["h_01", "h_02", "h_04", "h_08", "h_11"]
+	var init_ids = ["h_01", "h_02", "h_04", "h_08", "h_11", "h_16"]
 	var initial_formation = { "1": null, "2": null, "3": null, "4": null, "5": null, "6": null, "7": null, "8": null, "9": null }
 	
 	for i in range(init_ids.size()):
@@ -265,11 +255,12 @@ func get_default_new_account_save() -> Dictionary:
 			if inst.has("color"):
 				inst["color"] = (inst["color"] as Color).to_html()
 			initial_heroes.append(inst)
-			initial_formation[str(i + 1)] = inst["uuid"]
+			if i < 5:
+				initial_formation[str(i + 1)] = inst["uuid"]
 			
 	return {
-		"gold": 2000,
-		"exp_pool": 1500,
+		"gold": 100000000 if current_account == "admin" else 2000,
+		"exp_pool": 100000000 if current_account == "admin" else 1500,
 		"heroes": initial_heroes,
 		"formation": initial_formation,
 		"cleared_difficulties": []
@@ -277,8 +268,13 @@ func get_default_new_account_save() -> Dictionary:
 
 # 加载数据到内存
 func load_player_save_from_account(save_data: Dictionary) -> void:
-	player_gold = save_data.get("gold", 2000)
-	player_exp_pool = save_data.get("exp_pool", 1500)
+	if current_account == "admin":
+		player_gold = max(save_data.get("gold", 100000000), 100000000)
+		player_exp_pool = max(save_data.get("exp_pool", 100000000), 100000000)
+	else:
+		player_gold = save_data.get("gold", 2000)
+		player_exp_pool = save_data.get("exp_pool", 1500)
+		
 	cleared_difficulties = save_data.get("cleared_difficulties", [])
 	
 	player_heroes.clear()
@@ -337,46 +333,52 @@ func save_current_progress() -> void:
 	emit_signal("save_status_changed", "💾 游戏进度已成功保存！")
 
 # ---------------------------------------------------
-# 4. 角色与游戏操作函数
+# 4. 辅助查询方法
 # ---------------------------------------------------
-func add_hero(template_id: String) -> Dictionary:
-	var tmpl = HERO_TEMPLATES.get(template_id)
+func get_quality_config(quality: String) -> Dictionary:
+	return QUALITY_CONFIGS.get(quality, QUALITY_CONFIGS["N"])
+
+func get_troop_by_id(troop_id: String) -> Dictionary:
+	return TROOP_TEMPLATES.get(troop_id, {
+		"name": "普通民兵",
+		"type_name": "步兵",
+		"atk": 100,
+		"def": 100,
+		"satk": 100,
+		"sdef": 100,
+		"evade_rate": 0.05,
+		"target_type": "无",
+		"bonus_target": "单体攻击",
+		"bonus_rate": 0.0,
+		"skill_name": "无",
+		"skill_desc": "",
+		"anim_type": "slash",
+		"texture_path": ""
+	})
+
+func add_hero(hero_template_id: String) -> Dictionary:
+	var tmpl = HERO_TEMPLATES.get(hero_template_id)
 	if tmpl == null:
 		return {}
 	var inst = tmpl.duplicate(true)
-	inst["uuid"] = "uuid_" + str(Time.get_ticks_usec()) + "_" + str(randi() % 1000000)
+	inst["uuid"] = "uuid_" + str(Time.get_ticks_usec()) + "_" + str(randi() % 1000)
 	inst["level"] = 1
 	player_heroes.append(inst)
 	has_unsaved_changes = true
 	return inst
 
-func auto_fill_formation() -> void:
-	for pos in range(1, 10):
-		player_formation[pos] = null
-	
-	var count = min(5, player_heroes.size())
-	for i in range(count):
-		player_formation[i + 1] = player_heroes[i]["uuid"]
-	has_unsaved_changes = true
+func get_upgrade_cost(current_level: int) -> int:
+	return current_level * 100
 
-func get_hero_by_uuid(uuid: String) -> Dictionary:
-	for h in player_heroes:
-		if h["uuid"] == uuid:
-			return h
-	return {}
-
-func get_troop_by_id(troop_id: String) -> Dictionary:
-	if TROOP_TEMPLATES.has(troop_id):
-		return TROOP_TEMPLATES[troop_id]
-	return TROOP_TEMPLATES.get("t_cavalry", {})
-
-func get_upgrade_cost(level: int) -> int:
-	return level * 100
-
-func upgrade_hero(uuid: String) -> bool:
-	var h = get_hero_by_uuid(uuid)
-	if h.is_empty():
+func upgrade_hero(hero_uuid: String) -> bool:
+	var h = null
+	for hero in player_heroes:
+		if hero["uuid"] == hero_uuid:
+			h = hero
+			break
+	if h == null:
 		return false
+		
 	var cost = get_upgrade_cost(h["level"])
 	if player_exp_pool >= cost:
 		player_exp_pool -= cost
@@ -437,7 +439,6 @@ func get_enemy_formation(difficulty: String) -> Dictionary:
 		if HERO_TEMPLATES.has(tid):
 			var tmpl = HERO_TEMPLATES[tid].duplicate(true)
 			tmpl["uuid"] = "enemy_" + str(pos) + "_" + str(randi() % 100000)
-			tmpl["level"] = 1
 			tmpl["hp"] = int(tmpl["hp"] * stat_mult)
 			tmpl["atk"] = int(tmpl["atk"] * stat_mult)
 			tmpl["def"] = int(tmpl["def"] * stat_mult)
