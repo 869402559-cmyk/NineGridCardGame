@@ -12,10 +12,6 @@ func _ready() -> void:
 	btn_auto.pressed.connect(_on_auto_fill)
 	btn_clear.pressed.connect(_on_clear)
 	
-	# 设置左侧整个面板（LeftPanel）支持接收右侧卡牌拖入以进行下阵
-	var left_panel = $HBox/LeftPanel
-	left_panel.script = LeftPanelDropScript
-	
 	init_formation_slots()
 	refresh_all()
 
@@ -29,7 +25,7 @@ func init_formation_slots() -> void:
 		grid_container.add_child(card)
 		slot_cards.append(card)
 
-# 创建九宫格阵型位（卡牌支持作为拖拽目标）
+# 创建九宫格阵型位（卡牌支持作为拖拽目标与拖拽源）
 func create_slot_card(pos: int) -> Control:
 	var card = PanelContainer.new()
 	card.custom_minimum_size = Vector2(110, 140)
@@ -80,18 +76,18 @@ func refresh_left_hero_grid() -> void:
 		if uid != null:
 			equipped_uuids.append(uid)
 			
-	# 克隆武将列表并进行排序：已上阵优先，其次按品质(UR>SSR>SR>R>N)，再次按等级
+	# 克隆武将列表并排序：已上阵优先，其次品质，再次等级
 	var sorted_heroes = GameData.player_heroes.duplicate()
 	sorted_heroes.sort_custom(func(a, b):
 		var a_eq = a["uuid"] in equipped_uuids
 		var b_eq = b["uuid"] in equipped_uuids
 		if a_eq != b_eq:
-			return a_eq # 已上阵在前的降序 (true > false)
+			return a_eq # 已上阵在前
 			
 		var q_a = GameData.get_quality_config(a.get("quality", "N"))["rank"]
 		var q_b = GameData.get_quality_config(b.get("quality", "N"))["rank"]
 		if q_a != q_b:
-			return q_a > q_b # 品质高者在前
+			return q_a > q_b
 			
 		var lv_a = a.get("level", 1)
 		var lv_b = b.get("level", 1)
@@ -102,14 +98,13 @@ func refresh_left_hero_grid() -> void:
 		var card = create_hero_portrait_card(hero, hero["uuid"] in equipped_uuids)
 		hero_grid.add_child(card)
 
-# 创建左侧英雄 3:4 头像卡片 (支持拖拽与双击打开详情)
+# 创建左侧英雄 3:4 头像卡片
 func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 	var card = PanelContainer.new()
-	card.custom_minimum_size = Vector2(88, 118) # 适配 4 列容器
+	card.custom_minimum_size = Vector2(88, 118)
 	card.set_meta("hero_uuid", hero["uuid"])
 	card.script = HeroCardScript
 	
-	# 设置品质框体样式
 	var q_cfg = GameData.get_quality_config(hero.get("quality", "N"))
 	var style = StyleBoxFlat.new()
 	style.bg_color = q_cfg["bg_color"]
@@ -128,7 +123,6 @@ func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 	
 	var combined = GameData.calc_combined_stats(hero)
 	
-	# 顶部兵种与等级小角标
 	var top_info = Label.new()
 	top_info.text = combined["troop_type"] + " · Lv." + str(hero.get("level", 1))
 	top_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -136,7 +130,6 @@ func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 	top_info.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 0.8))
 	vbox.add_child(top_info)
 	
-	# 武将大头像/立绘
 	var img = TextureRect.new()
 	img.custom_minimum_size = Vector2(50, 65)
 	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -146,7 +139,6 @@ func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 		img.texture = load(combined["texture_path"])
 	vbox.add_child(img)
 	
-	# 底部名字与品质
 	var name_lbl = Label.new()
 	var eq_str = " [已上阵]" if is_equipped else ""
 	name_lbl.text = "[" + hero.get("quality", "N") + "] " + hero.get("name", "武将") + eq_str
@@ -158,7 +150,6 @@ func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 		name_lbl.add_theme_color_override("font_color", q_cfg["label_color"])
 	vbox.add_child(name_lbl)
 	
-	# 双击 / 点击事件
 	card.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			if event.double_click:
@@ -182,7 +173,6 @@ func refresh_right_formation_grid() -> void:
 			var combined = GameData.calc_combined_stats(hero)
 			var q_cfg = GameData.get_quality_config(hero.get("quality", "N"))
 			
-			# 动态应用品质边框样式
 			var style = StyleBoxFlat.new()
 			style.bg_color = q_cfg["bg_color"]
 			style.set_corner_radius_all(6)
@@ -204,7 +194,6 @@ Lv." + str(hero.get("level", 1))
 			else:
 				img.texture = null
 		else:
-			# 空槽位样式
 			var style = StyleBoxFlat.new()
 			style.bg_color = Color(0.12, 0.12, 0.12, 0.5)
 			style.set_corner_radius_all(6)
@@ -240,7 +229,7 @@ func _on_clear() -> void:
 		GameData.player_formation[pos] = null
 	refresh_all()
 
-# 内部类：拖拽英雄头像源卡片
+# 内部类：左侧列表武将卡片拖拽源
 class HeroCardScript extends PanelContainer:
 	func _get_drag_data(_at_position: Vector2) -> Variant:
 		var uuid = get_meta("hero_uuid")
@@ -253,46 +242,10 @@ class HeroCardScript extends PanelContainer:
 		lbl.add_theme_color_override("font_color", q_cfg["label_color"])
 		preview.add_child(lbl)
 		set_drag_preview(preview)
-		return { "type": "hero_card", "uuid": uuid, "from": "left_list" }
+		return { "type": "hero_card", "uuid": uuid, "from_slot": 0 }
 
-# 内部类：左侧列表与面板区域（接收从右侧拖回的武将进行下阵）
-class LeftPanelDropScript extends VBoxContainer:
-	func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
-		return typeof(data) == TYPE_DICTIONARY and data.get("type") == "hero_card"
-
-	func _drop_data(_at_position: Vector2, data: Variant) -> void:
-		var dragged_uuid = data.get("uuid") as String
-		# 将该武将从右侧阵型中移除（下阵）
-		for p in range(1, 10):
-			if GameData.player_formation[p] == dragged_uuid:
-				GameData.player_formation[p] = null
-				
-		GameData.has_unsaved_changes = true
-		
-		# 安全获取 FormationUI 并刷新
-		var p_node: Node = self
-		while p_node:
-			if p_node.has_method("refresh_all"):
-				p_node.refresh_all()
-				break
-			p_node = p_node.get_parent()
-
-	# 拖拽下阵：如果卡片被释放拖拽（且未被九宫格接收），判定为拖出阵型下阵
-	func _notification(what: int) -> void:
-		if what == NOTIFICATION_DRAG_END:
-			if not is_drag_successful():
-				var pos = get_meta("slot_pos") as int
-				if GameData.player_formation[pos] != null:
-					GameData.player_formation[pos] = null
-					GameData.has_unsaved_changes = true
-					
-					var p_node: Node = self
-					while p_node:
-						if p_node.has_method("refresh_all"):
-							p_node.refresh_all()
-							break
-						p_node = p_node.get_parent()
-
+# 内部类：九宫格阵型槽位（支持接收放置、从槽位拖拽、双击下阵）
+class SlotCardScript extends PanelContainer:
 	func _get_drag_data(_at_position: Vector2) -> Variant:
 		var pos = get_meta("slot_pos") as int
 		var uuid = GameData.player_formation[pos]
@@ -319,37 +272,43 @@ class LeftPanelDropScript extends VBoxContainer:
 		var from_slot = data.get("from_slot", 0) as int
 		
 		if from_slot > 0:
-			# 来自右侧九宫格另一个槽位：直接互换或移动位置
+			# 来自右侧九宫格另一个槽位：位置互换/移动
 			var target_uuid = GameData.player_formation[target_pos]
 			GameData.player_formation[target_pos] = dragged_uuid
 			GameData.player_formation[from_slot] = target_uuid
 		else:
 			# 来自左侧列表：放置上阵
-			# 若已在其他槽位，先清空原槽位
 			for p in range(1, 10):
 				if GameData.player_formation[p] == dragged_uuid:
 					GameData.player_formation[p] = null
 					
-			# 检查 5 人限制
 			var current_count = 0
 			for p in range(1, 10):
 				if GameData.player_formation[p] != null:
 					current_count += 1
 					
 			if current_count >= 5 and GameData.player_formation[target_pos] == null:
-				# 满5人无法放入空位
-				pass
+				pass # 满5人无法放入空位
 			else:
 				GameData.player_formation[target_pos] = dragged_uuid
 			
 		GameData.has_unsaved_changes = true
-		var parent_ui = get_tree().current_scene.find_child("FormationUI", true, false)
-		if parent_ui:
-			parent_ui.refresh_all()
-		else:
-			var p_node = get_parent()
-			while p_node:
-				if p_node.has_method("refresh_all"):
-					p_node.refresh_all()
-					break
-				p_node = p_node.get_parent()
+		_notify_refresh()
+
+	# 拖拽结束：如果未落地到其他槽位（即拖出阵型/拖到空白处），自动判定为下阵
+	func _notification(what: int) -> void:
+		if what == NOTIFICATION_DRAG_END:
+			if not is_drag_successful():
+				var pos = get_meta("slot_pos") as int
+				if GameData.player_formation[pos] != null:
+					GameData.player_formation[pos] = null
+					GameData.has_unsaved_changes = true
+					_notify_refresh()
+
+	func _notify_refresh() -> void:
+		var p_node: Node = self
+		while p_node:
+			if p_node.has_method("refresh_all"):
+				p_node.refresh_all()
+				break
+			p_node = p_node.get_parent()
