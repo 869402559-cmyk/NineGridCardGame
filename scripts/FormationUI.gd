@@ -105,7 +105,7 @@ func refresh_left_hero_grid() -> void:
 # 创建左侧英雄 3:4 头像卡片 (支持拖拽与双击打开详情)
 func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 	var card = PanelContainer.new()
-	card.custom_minimum_size = Vector2(100, 133) # 标准 3:4 比例卡牌
+	card.custom_minimum_size = Vector2(92, 122) # 兼容 4 列布局的尺寸
 	card.set_meta("hero_uuid", hero["uuid"])
 	card.script = HeroCardScript
 	
@@ -123,12 +123,12 @@ func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 	
 	var vbox = VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.theme_override_constants.separation = 2
+	vbox.theme_override_constants.separation = 1
 	card.add_child(vbox)
 	
 	var combined = GameData.calc_combined_stats(hero)
 	
-	# 顶部清晰兵种与等级角标/标签
+	# 顶部兵种与等级小角标
 	var top_info = Label.new()
 	top_info.text = combined["troop_type"] + " · Lv." + str(hero.get("level", 1))
 	top_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -136,9 +136,9 @@ func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 	top_info.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 0.8))
 	vbox.add_child(top_info)
 	
-	# 武将大头像/立绘 (占比最大)
+	# 武将大头像/立绘
 	var img = TextureRect.new()
-	img.custom_minimum_size = Vector2(70, 85)
+	img.custom_minimum_size = Vector2(55, 70)
 	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	img.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -151,7 +151,7 @@ func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 	var eq_str = " [已上阵]" if is_equipped else ""
 	name_lbl.text = "[" + hero.get("quality", "N") + "] " + hero.get("name", "武将") + eq_str
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 11)
+	name_lbl.add_theme_font_size_override("font_size", 10)
 	if is_equipped:
 		name_lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))
 	else:
