@@ -12,6 +12,10 @@ func _ready() -> void:
 	btn_auto.pressed.connect(_on_auto_fill)
 	btn_clear.pressed.connect(_on_clear)
 	
+	# 设置左侧整个面板（LeftPanel）支持接收右侧卡牌拖入以进行下阵
+	var left_panel = $HBox/LeftPanel
+	left_panel.script = LeftPanelDropScript
+	
 	init_formation_slots()
 	refresh_all()
 
@@ -251,8 +255,8 @@ class HeroCardScript extends PanelContainer:
 		set_drag_preview(preview)
 		return { "type": "hero_card", "uuid": uuid, "from": "left_list" }
 
-# 内部类：左侧列表区域（接收从右侧拖回的武将进行下阵）
-class LeftPanelDropScript extends ScrollContainer:
+# 内部类：左侧列表与面板区域（接收从右侧拖回的武将进行下阵）
+class LeftPanelDropScript extends VBoxContainer:
 	func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 		return typeof(data) == TYPE_DICTIONARY and data.get("type") == "hero_card"
 
@@ -264,19 +268,31 @@ class LeftPanelDropScript extends ScrollContainer:
 				GameData.player_formation[p] = null
 				
 		GameData.has_unsaved_changes = true
-		var parent_ui = get_tree().current_scene.find_child("FormationUI", true, false)
-		if parent_ui:
-			parent_ui.refresh_all()
-		else:
-			var p_node = get_parent()
-			while p_node:
-				if p_node.has_method("refresh_all"):
-					p_node.refresh_all()
-					break
-				p_node = p_node.get_parent()
+		
+		# 安全获取 FormationUI 并刷新
+		var p_node: Node = self
+		while p_node:
+			if p_node.has_method("refresh_all"):
+				p_node.refresh_all()
+				break
+			p_node = p_node.get_parent()
 
-# 内部类：阵型放置槽位目标 (支持从左侧拉入、从右侧其他槽位交换/移动)
-class SlotCardScript extends PanelContainer:
+	# 拖拽下阵：如果卡片被释放拖拽（且未被九宫格接收），判定为拖出阵型下阵
+	func _notification(what: int) -> void:
+		if what == NOTIFICATION_DRAG_END:
+			if not is_drag_successful():
+				var pos = get_meta("slot_pos") as int
+				if GameData.player_formation[pos] != null:
+					GameData.player_formation[pos] = null
+					GameData.has_unsaved_changes = true
+					
+					var p_node: Node = self
+					while p_node:
+						if p_node.has_method("refresh_all"):
+							p_node.refresh_all()
+							break
+						p_node = p_node.get_parent()
+
 	func _get_drag_data(_at_position: Vector2) -> Variant:
 		var pos = get_meta("slot_pos") as int
 		var uuid = GameData.player_formation[pos]
