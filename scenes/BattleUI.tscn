@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://b1a2t3t4l5"]
+[gd_scene load_steps=3 format=3 uid="uid://b1a2t3t4l5"]
 
 [ext_resource type="Script" path="res://scripts/BattleUI.gd" id="1_battle"]
+[ext_resource type="Texture2D" uid="uid://c8fightbg001" path="res://assets/textures/fight_bg.png" id="2_fight_bg"]
 
 [node name="BattleUI" type="Control"]
 layout_mode = 3
@@ -11,14 +12,26 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_battle")
 
+[node name="BgTexture" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_fight_bg")
+expand_mode = 1
+stretch_mode = 6
+
 [node name="VBox" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
+offset_left = 20.0
 offset_top = 10.0
-offset_right = -10.0
+offset_right = -20.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -26,28 +39,29 @@ theme_override_constants/separation = 10
 
 [node name="TopControls" type="HBoxContainer" parent="VBox"]
 layout_mode = 2
-theme_override_constants/separation = 20
-alignment = 1
+theme_override_constants/separation = 15
+alignment = 2
 
 [node name="DiffLabel" type="Label" parent="VBox/TopControls"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "选择电脑难度:"
+theme_override_colors/font_color = Color(0.9, 0.85, 0.75, 1)
+theme_override_font_sizes/font_size = 16
+text = "电脑难度:"
 
 [node name="DiffSelect" type="OptionButton" parent="VBox/TopControls"]
-custom_minimum_size = Vector2(140, 40)
+custom_minimum_size = Vector2(130, 36)
 layout_mode = 2
 
 [node name="BtnStart" type="Button" parent="VBox/TopControls"]
-custom_minimum_size = Vector2(140, 40)
+custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "自动战斗"
 
 [node name="BtnSkip" type="Button" parent="VBox/TopControls"]
-custom_minimum_size = Vector2(140, 40)
+custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "跳过战斗"
 
 [node name="MainLayout" type="HBoxContainer" parent="VBox"]
@@ -71,7 +85,10 @@ columns = 3
 
 [node name="VsLabel" type="Label" parent="VBox/MainLayout/BattleBoard"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.9, 0.2, 0.2, 0.8)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 32
 text = "VS"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -84,22 +101,32 @@ theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 columns = 3
 
-[node name="LogPanel" type="VBoxContainer" parent="VBox/MainLayout"]
+[node name="LogPanel" type="PanelContainer" parent="VBox/MainLayout"]
 custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="VBox/MainLayout/LogPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="LogVBox" type="VBoxContainer" parent="VBox/MainLayout/LogPanel/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="LogTitle" type="Label" parent="VBox/MainLayout/LogPanel"]
+[node name="LogTitle" type="Label" parent="VBox/MainLayout/LogPanel/Margin/LogVBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "📜 战斗日志战报:"
 
-[node name="LogScroll" type="ScrollContainer" parent="VBox/MainLayout/LogPanel"]
+[node name="LogScroll" type="ScrollContainer" parent="VBox/MainLayout/LogPanel/Margin/LogVBox"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="LogText" type="RichTextLabel" parent="VBox/MainLayout/LogPanel/LogScroll"]
+[node name="LogText" type="RichTextLabel" parent="VBox/MainLayout/LogPanel/Margin/LogVBox/LogScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

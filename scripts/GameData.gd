@@ -184,11 +184,6 @@ func ensure_default_accounts() -> void:
 			"save_data": admin_default_save
 		}
 		save_all_accounts_data(accounts)
-	else:
-		if accounts["admin"].has("save_data"):
-			accounts["admin"]["save_data"]["gold"] = max(accounts["admin"]["save_data"].get("gold", 0), 100000000)
-			accounts["admin"]["save_data"]["exp_pool"] = max(accounts["admin"]["save_data"].get("exp_pool", 0), 100000000)
-			save_all_accounts_data(accounts)
 
 func load_all_accounts_data() -> Dictionary:
 	if not FileAccess.file_exists(ACCOUNTS_FILE):
@@ -269,12 +264,8 @@ func get_default_new_account_save() -> Dictionary:
 
 # 加载数据到内存
 func load_player_save_from_account(save_data: Dictionary) -> void:
-	if current_account == "admin":
-		player_gold = max(save_data.get("gold", 100000000), 100000000)
-		player_exp_pool = max(save_data.get("exp_pool", 100000000), 100000000)
-	else:
-		player_gold = save_data.get("gold", 2000)
-		player_exp_pool = save_data.get("exp_pool", 1500)
+	player_gold = save_data.get("gold", 100000000 if current_account == "admin" else 2000)
+	player_exp_pool = save_data.get("exp_pool", 100000000 if current_account == "admin" else 1500)
 		
 	cleared_difficulties = save_data.get("cleared_difficulties", [])
 	
@@ -333,9 +324,43 @@ func save_current_progress() -> void:
 	has_unsaved_changes = false
 	emit_signal("save_status_changed", "💾 游戏进度已成功保存！")
 
-# ---------------------------------------------------
-# 4. 辅助查询方法
-# ---------------------------------------------------
+# 兵种大类配置（定义各兵种大类的阵型布局配置：grid_size, sol_size, offset, 损耗顺序）
+const TROOP_CATEGORY_CONFIGS: Dictionary = {
+	"骑兵": {
+		"grid_type": "3x3",
+		"total_count": 9,
+		"sol_size": Vector2(44, 44),
+		"custom_positions": [
+			# 3x3 错位斜面排布，拉大图幅呈现和 4x4 一样饱满的厚重感
+			Vector2(0, 0), Vector2(30, 0), Vector2(60, 0),
+			Vector2(10, 24), Vector2(40, 24), Vector2(70, 24),
+			Vector2(20, 48), Vector2(50, 48), Vector2(80, 48)
+		],
+		# 3x3 脱落顺序：先掉 4 个角落，再掉边翼，最后剩中央主将
+		"removal_order": [0, 2, 6, 8, 1, 3, 5, 7, 4]
+	},
+	"鼓手": {
+		"grid_type": "3x3",
+		"total_count": 9,
+		"sol_size": Vector2(44, 44),
+		"custom_positions": [
+			Vector2(0, 0), Vector2(30, 0), Vector2(60, 0),
+			Vector2(10, 24), Vector2(40, 24), Vector2(70, 24),
+			Vector2(20, 48), Vector2(50, 48), Vector2(80, 48)
+		],
+		"removal_order": [0, 2, 6, 8, 1, 3, 5, 7, 4]
+	},
+	"DEFAULT_4x4": {
+		"grid_type": "4x4",
+		"total_count": 16,
+		"sol_size": Vector2(36, 36),
+		"custom_positions": [], # 在代码中按 row/col 动态生成 4x4 错位
+		"removal_order": [0, 3, 12, 15, 1, 14, 2, 13, 4, 11, 7, 8, 5, 10, 6, 9]
+	}
+}
+
+func get_troop_category_config(category_name: String) -> Dictionary:
+	return TROOP_CATEGORY_CONFIGS.get(category_name, TROOP_CATEGORY_CONFIGS["DEFAULT_4x4"])
 func get_quality_config(quality: String) -> Dictionary:
 	return QUALITY_CONFIGS.get(quality, QUALITY_CONFIGS["N"])
 
@@ -526,3 +551,23 @@ func get_enemy_formation(difficulty: String) -> Dictionary:
 			enemy_formation[pos] = tmpl
 			
 	return enemy_formation
+
+func auto_fill_formation() -> void:
+	for pos in range(1, 10):
+		player_formation[pos] = null
+		
+	var sorted_heroes = player_heroes.duplicate()
+	sorted_heroes.sort_custom(func(a, b):
+		var q_a = get_quality_config(a.get("quality", "N"))["rank_weight"]
+		var q_b = get_quality_config(b.get("quality", "N"))["rank_weight"]
+		if q_a != q_b:
+			return q_a > q_b
+		var lv_a = a.get("level", 1)
+		var lv_b = b.get("level", 1)
+		return lv_a > lv_b
+	)
+	
+	for i in range(min(5, sorted_heroes.size())):
+		player_formation[i + 1] = sorted_heroes[i]["uuid"]
+		
+	has_unsaved_changes = true

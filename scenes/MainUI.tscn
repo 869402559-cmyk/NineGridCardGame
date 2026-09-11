@@ -20,22 +20,22 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.96, 0.93, 0.84, 1)
+color = Color(0.12, 0.11, 0.1, 1)
 
 [node name="TopBox" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 30.0
-offset_top = 15.0
-offset_right = -30.0
-offset_bottom = 75.0
+offset_left = 20.0
+offset_top = 10.0
+offset_right = -20.0
+offset_bottom = 60.0
 grow_horizontal = 2
 theme_override_constants/separation = 20
 
 [node name="Title" type="Label" parent="TopBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
+theme_override_colors/font_color = Color(1, 0.9, 0.7, 1)
 theme_override_font_sizes/font_size = 26
 text = "傲视天地"
 vertical_alignment = 1
@@ -43,7 +43,7 @@ vertical_alignment = 1
 [node name="AccountLabel" type="Label" parent="TopBox"]
 name = "AccountLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.3, 0.15, 1)
+theme_override_colors/font_color = Color(0.85, 0.8, 0.7, 1)
 theme_override_font_sizes/font_size = 18
 text = "主公: admin"
 vertical_alignment = 1
@@ -56,14 +56,14 @@ alignment = 2
 
 [node name="GoldLabel" type="Label" parent="TopBox/ResBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.55, 0.05, 1)
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_font_sizes/font_size = 18
 text = "💰 金币: 2000"
 vertical_alignment = 1
 
 [node name="ExpLabel" type="Label" parent="TopBox/ResBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.1, 0.6, 0.9, 1)
+theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 18
 text = "✨ 经验池: 1500"
 vertical_alignment = 1
@@ -92,8 +92,8 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -75.0
-offset_bottom = -15.0
+offset_top = -65.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 40
@@ -122,9 +122,7 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 30.0
-offset_top = 80.0
-offset_right = -30.0
-offset_bottom = -85.0
+offset_top = 65.0
+offset_bottom = -70.0
 grow_horizontal = 2
 grow_vertical = 2

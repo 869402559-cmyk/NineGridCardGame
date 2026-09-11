@@ -5,8 +5,9 @@ extends Control
 @onready var btn_skip: Button = $VBox/TopControls/BtnSkip
 @onready var player_grid_ui: GridContainer = $VBox/MainLayout/BattleBoard/PlayerGrid
 @onready var enemy_grid_ui: GridContainer = $VBox/MainLayout/BattleBoard/EnemyGrid
-@onready var log_text: RichTextLabel = $VBox/MainLayout/LogPanel/LogScroll/LogText
-@onready var log_scroll: ScrollContainer = $VBox/MainLayout/LogPanel/LogScroll
+@onready var log_scroll: ScrollContainer = $VBox/MainLayout/LogPanel/Margin/LogVBox/LogScroll
+@onready var log_text: RichTextLabel = $VBox/MainLayout/LogPanel/Margin/LogVBox/LogScroll/LogText
+@onready var log_panel: PanelContainer = $VBox/MainLayout/LogPanel
 @onready var fx_layer: Control = $FxLayer
 
 # 战斗逻辑对象
@@ -63,6 +64,15 @@ func _ready() -> void:
 	btn_start.pressed.connect(_on_start_battle)
 	btn_skip.pressed.connect(_on_skip_battle)
 	
+	# 设置右侧日志面板的纯色不透明背景
+	if log_panel:
+		var sb = StyleBoxFlat.new()
+		sb.bg_color = Color(0.12, 0.12, 0.15, 0.98) # 深沉实心暗色纯色背景
+		sb.border_color = Color(0.5, 0.42, 0.25, 1.0)
+		sb.set_border_width_all(2)
+		sb.set_corner_radius_all(6)
+		log_panel.add_theme_stylebox_override("panel", sb)
+	
 	init_boards()
 	load_preview_formations()
 
@@ -86,12 +96,13 @@ func init_boards() -> void:
 
 func create_card_node(pos: int, is_player: bool) -> Control:
 	var card = Control.new()
-	card.custom_minimum_size = Vector2(130, 150)
+	card.custom_minimum_size = Vector2(135, 185)
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	card.pivot_offset = Vector2(65, 75)
+	card.pivot_offset = Vector2(67, 92)
 	
 	var margin = MarginContainer.new()
+	margin.name = "MarginContainer"
 	margin.set_anchors_preset(PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 2)
 	margin.add_theme_constant_override("margin_right", 2)
@@ -110,24 +121,43 @@ func create_card_node(pos: int, is_player: bool) -> Control:
 	vbox.add_theme_constant_override("separation", 2)
 	margin.add_child(vbox)
 	
+	# 顶部只保留武将名字
 	var name_lbl = Label.new()
 	name_lbl.name = "NameLbl"
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 13)
+	name_lbl.add_theme_font_size_override("font_size", 14)
 	vbox.add_child(name_lbl)
 	
 	var avatar_rect = TextureRect.new()
 	avatar_rect.name = "AvatarRect"
-	avatar_rect.custom_minimum_size = Vector2(60, 60)
-	avatar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	avatar_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	avatar_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	avatar_rect.visible = false
 	vbox.add_child(avatar_rect)
 	
+	# 小兵错位叠加阵型容器 (SquadGrid 改为绝对定位 Control)
+	var squad_grid = Control.new()
+	squad_grid.name = "SquadGrid"
+	squad_grid.custom_minimum_size = Vector2(120, 100)
+	squad_grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	squad_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	
+	# 动态容纳最多 16 个小兵节点 (兼容 3x3 与 4x4)
+	for idx in range(16):
+		var icon = TextureRect.new()
+		icon.name = "Sol_" + str(idx)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		squad_grid.add_child(icon)
+			
+	vbox.add_child(squad_grid)
+	
+	# 底部：血条与数值
 	var hp_bar = ProgressBar.new()
 	hp_bar.name = "HpBar"
-	hp_bar.custom_minimum_size = Vector2(0, 12)
+	hp_bar.custom_minimum_size = Vector2(0, 8)
 	hp_bar.show_percentage = false
+	var hp_sb = StyleBoxFlat.new()
+	hp_sb.bg_color = Color(0.85, 0.2, 0.2, 1.0)
+	hp_bar.add_theme_stylebox_override("fill", hp_sb)
 	vbox.add_child(hp_bar)
 	
 	var hp_lbl = Label.new()
@@ -136,14 +166,24 @@ func create_card_node(pos: int, is_player: bool) -> Control:
 	hp_lbl.add_theme_font_size_override("font_size", 10)
 	vbox.add_child(hp_lbl)
 	
+	# 底部：士气条与数值
 	var mp_bar = ProgressBar.new()
 	mp_bar.name = "MpBar"
-	mp_bar.custom_minimum_size = Vector2(0, 8)
+	mp_bar.custom_minimum_size = Vector2(0, 6)
 	mp_bar.max_value = 100
 	mp_bar.show_percentage = false
+	var mp_sb = StyleBoxFlat.new()
+	mp_sb.bg_color = Color(0.2, 0.5, 0.9, 1.0)
+	mp_bar.add_theme_stylebox_override("fill", mp_sb)
 	vbox.add_child(mp_bar)
 	
-	card.visible = false
+	var mp_lbl = Label.new()
+	mp_lbl.name = "MpLbl"
+	mp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mp_lbl.add_theme_font_size_override("font_size", 9)
+	vbox.add_child(mp_lbl)
+	
+	card.visible = true
 	return card
 
 func load_preview_formations() -> void:
@@ -153,34 +193,36 @@ func load_preview_formations() -> void:
 	var p_form = GameData.player_formation
 	for pos in range(1, 10):
 		if p_form.has(pos) and p_form[pos] != null:
-			var hero = p_form[pos]
-			var combined = GameData.calc_combined_stats(hero)
-			var u = BattleUnit.new()
-			u.uuid = hero.get("uuid", str(pos))
-			u.name = hero.get("name", "英雄")
-			u.is_player = true
-			u.pos = pos
-			u.level = hero.get("level", 1)
-			u.max_hp = combined["hp"]
-			u.current_hp = u.max_hp
-			u.atk = combined["atk"]
-			u.def = combined["def"]
-			u.satk = combined["satk"]
-			u.sdef = combined["sdef"]
-			u.spd = combined["spd"]
-			u.evade_rate = combined["evade_rate"]
-			u.bonus_target = combined["bonus_target"]
-			u.bonus_rate = combined["bonus_rate"]
-			u.mp = 50
-			u.troop_name = combined["troop_name"]
-			u.troop_type = combined["troop_type"]
-			u.atk_type = combined["atk_type"]
-			u.skill_name = combined["skill_name"]
-			u.skill_desc = combined["skill_desc"]
-			u.anim_type = combined["anim_type"]
-			u.texture_path = combined["texture_path"]
-			u.ui_card = player_cards[pos]
-			player_units[pos] = u
+			var hero_uuid = p_form[pos]
+			var hero = GameData.get_hero_by_uuid(hero_uuid)
+			if not hero.is_empty():
+				var combined = GameData.calc_combined_stats(hero)
+				var u = BattleUnit.new()
+				u.uuid = hero.get("uuid", str(pos))
+				u.name = hero.get("name", "英雄")
+				u.is_player = true
+				u.pos = pos
+				u.level = hero.get("level", 1)
+				u.max_hp = combined["hp"]
+				u.current_hp = u.max_hp
+				u.atk = combined["atk"]
+				u.def = combined["def"]
+				u.satk = combined["satk"]
+				u.sdef = combined["sdef"]
+				u.spd = combined["spd"]
+				u.evade_rate = combined["evade_rate"]
+				u.bonus_target = combined["bonus_target"]
+				u.bonus_rate = combined["bonus_rate"]
+				u.mp = 50
+				u.troop_name = combined["troop_name"]
+				u.troop_type = combined["troop_type"]
+				u.atk_type = combined["atk_type"]
+				u.skill_name = combined["skill_name"]
+				u.skill_desc = combined["skill_desc"]
+				u.anim_type = combined["anim_type"]
+				u.texture_path = combined["texture_path"]
+				u.ui_card = player_cards[pos]
+				player_units[pos] = u
 			
 	var diff_idx = diff_select.selected
 	var diff_str = "Normal"
@@ -230,36 +272,137 @@ func render_all_cards() -> void:
 		update_card_ui(enemy_cards[pos], enemy_units.get(pos))
 
 func update_card_ui(card_node: Control, unit: BattleUnit) -> void:
-	if unit == null or not unit.is_alive():
-		card_node.visible = false
-		return
-		
 	card_node.visible = true
 	var vbox = card_node.get_node("MarginContainer/VBox")
 	var name_lbl = vbox.get_node("NameLbl") as Label
 	var avatar_rect = vbox.get_node("AvatarRect") as TextureRect
+	var squad_grid = vbox.get_node("SquadGrid") as Control
 	var hp_bar = vbox.get_node("HpBar") as ProgressBar
 	var hp_lbl = vbox.get_node("HpLbl") as Label
 	var mp_bar = vbox.get_node("MpBar") as ProgressBar
+	var mp_lbl = vbox.get_node("MpLbl") as Label
 	var bg_panel = card_node.get_node("MarginContainer/BgPanel") as Panel
 	
-	name_lbl.text = unit.name + "
-[" + unit.troop_name + "]"
-	hp_bar.max_value = unit.max_hp
-	hp_bar.value = unit.current_hp
-	hp_lbl.text = str(unit.current_hp) + " / " + str(unit.max_hp)
-	mp_bar.value = unit.mp
+	# 空槽位处理
+	if unit == null:
+		name_lbl.text = ""
+		avatar_rect.texture = null
+		squad_grid.visible = false
+		hp_bar.visible = false
+		hp_lbl.visible = false
+		mp_bar.visible = false
+		mp_lbl.visible = false
+		card_node.modulate = Color(1, 1, 1, 0.2)
+		var empty_sb = StyleBoxFlat.new()
+		empty_sb.bg_color = Color(0.1, 0.1, 0.1, 0.0) # 无底色透明
+		empty_sb.border_color = Color(0.3, 0.3, 0.3, 0.2)
+		empty_sb.set_border_width_all(1)
+		empty_sb.set_corner_radius_all(4)
+		bg_panel.add_theme_stylebox_override("panel", empty_sb)
+		return
+		
+	squad_grid.visible = true
+	hp_bar.visible = true
+	hp_lbl.visible = true
+	mp_bar.visible = true
+	mp_lbl.visible = true
 	
-	# 设置品级/兵种渲染背景样式
-	var sb = StyleBoxFlat.new()
-	if unit.is_player:
-		sb.bg_color = Color(0.12, 0.22, 0.15, 0.85)
-		sb.border_color = Color(0.2, 0.8, 0.3, 1.0)
+	# 生存与阵亡处理
+	if not unit.is_alive():
+		card_node.modulate = Color(0.4, 0.4, 0.4, 0.7) # 阵亡置灰
+		name_lbl.text = "[阵亡] " + unit.name
+		name_lbl.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
 	else:
-		sb.bg_color = Color(0.25, 0.12, 0.12, 0.85)
-		sb.border_color = Color(0.8, 0.2, 0.2, 1.0)
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(4)
+		card_node.modulate = Color(1, 1, 1, 1.0) # 存活正常显色
+		name_lbl.text = unit.name
+		name_lbl.remove_theme_color_override("font_color")
+		
+	hp_bar.max_value = unit.max_hp
+	hp_bar.value = max(0, unit.current_hp)
+	hp_lbl.text = str(max(0, unit.current_hp)) + " / " + str(unit.max_hp)
+	
+	mp_bar.max_value = 100
+	mp_bar.value = unit.mp
+	mp_lbl.text = "士气: " + str(unit.mp) + " / 100"
+	
+	# 根据兵种大类读取配置表 (GameData.TROOP_CATEGORY_CONFIGS)
+	var cat_cfg = GameData.get_troop_category_config(unit.troop_type)
+	var total_count = cat_cfg.get("total_count", 16)
+	var removal_order = cat_cfg.get("removal_order", [0, 3, 12, 15, 1, 14, 2, 13, 4, 11, 7, 8, 5, 10, 6, 9])
+	var sol_size = cat_cfg.get("sol_size", Vector2(36, 36))
+	var grid_type = cat_cfg.get("grid_type", "4x4")
+	
+	# 计算存活小兵数量
+	var hp_ratio = float(max(0, unit.current_hp)) / float(max(1, unit.max_hp))
+	var alive_soldiers = 0
+	if unit.is_alive():
+		alive_soldiers = int(ceil(hp_ratio * float(total_count)))
+		alive_soldiers = clamp(alive_soldiers, 1, total_count)
+		
+	# 计算需要隐藏的小兵索引
+	var hidden_indices = {}
+	var removed_count = total_count - alive_soldiers
+	for k in range(min(removed_count, removal_order.size())):
+		hidden_indices[removal_order[k]] = true
+		
+	var idle_tex: Texture2D = null
+	if unit.texture_path != "" and ResourceLoader.exists(unit.texture_path):
+		idle_tex = load(unit.texture_path)
+	elif unit.troop_type == "弓兵" and ResourceLoader.exists("res://assets/textures/baimayicong_idle.png"):
+		idle_tex = load("res://assets/textures/baimayicong_idle.png")
+	elif ResourceLoader.exists("res://assets/textures/hobaoqi_idle.png"):
+		idle_tex = load("res://assets/textures/hobaoqi_idle.png")
+	else:
+		idle_tex = load("res://assets/textures/hobaoqi_idle.png")
+		
+	# 动态部署 3x3 或 4x4 的小兵坐标与属性
+	for i in range(16):
+		var sol_icon = squad_grid.get_node_or_null("Sol_" + str(i)) as TextureRect
+		if sol_icon == null:
+			continue
+			
+		if i < total_count and not hidden_indices.has(i) and unit.is_alive():
+			sol_icon.texture = idle_tex
+			sol_icon.custom_minimum_size = sol_size
+			sol_icon.size = sol_size
+			sol_icon.pivot_offset = sol_size / 2.0
+			
+			# 布局坐标计算：3x3 专有更饱满大坐标，4x4 标准网格坐标
+			var pos_x = 0.0
+			var pos_y = 0.0
+			if grid_type == "3x3":
+				var custom_pos_list = cat_cfg.get("custom_positions", [])
+				if i < custom_pos_list.size():
+					pos_x = custom_pos_list[i].x
+					pos_y = custom_pos_list[i].y
+				if not unit.is_player:
+					sol_icon.flip_h = true
+					# 镜像水平转换
+					pos_x = 80.0 - pos_x
+				else:
+					sol_icon.flip_h = false
+			else:
+				var row = i / 4
+				var col = i % 4
+				if not unit.is_player:
+					sol_icon.flip_h = true
+					pos_x = (3 - col) * 20 + row * 6
+					pos_y = row * 18
+				else:
+					sol_icon.flip_h = false
+					pos_x = col * 20 + (3 - row) * 6
+					pos_y = row * 18
+					
+			sol_icon.position = Vector2(pos_x, pos_y)
+			sol_icon.visible = true
+		else:
+			sol_icon.visible = false
+				
+	# 取消红绿卡牌背景框（采用完全透明底色，去除实心矩形和高亮边框）
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0)
+	sb.border_color = Color(0, 0, 0, 0)
+	sb.set_border_width_all(0)
 	bg_panel.add_theme_stylebox_override("panel", sb)
 	
 	if unit.texture_path != "" and ResourceLoader.exists(unit.texture_path):
@@ -275,12 +418,14 @@ func _on_start_battle() -> void:
 	if is_battle_running:
 		return
 		
+	# 如果上一局已经结束，先重新加载阵型和充填数值
 	load_preview_formations()
 	if player_units.size() == 0:
 		log_text.text = "[color=red]报错：玩家未上阵任何武将！请先前往【阵型】布阵。[/color]"
 		return
 		
 	is_battle_running = true
+	is_fast_simulating = false
 	is_reward_given = false
 	battle_round = 1
 	GameData.is_in_battle = true
@@ -791,10 +936,13 @@ func check_battle_over() -> bool:
 			append_log("[color=green]获得战利品：金币 +100，共享经验 +100[/color]")
 			GameData.player_gold += 100
 			GameData.player_exp_pool += 100
+			GameData.emit_signal("gold_changed")
+			GameData.emit_signal("exp_changed")
 			GameData.has_unsaved_changes = true
 		else:
 			append_log("
 [color=red]☠️ 遗憾败北！全军覆没！[/color]")
+		is_fast_simulating = false
 		return true
 	return false
 

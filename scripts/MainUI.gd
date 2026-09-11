@@ -30,7 +30,8 @@ func _ready() -> void:
 	
 	account_label.text = "主公: " + GameData.current_account
 	update_resources()
-	_on_formation_pressed()
+	# 默认打开出征（战斗）界面
+	_on_battle_pressed()
 
 func update_resources() -> void:
 	gold_label.text = "💰 金币: " + str(GameData.player_gold)

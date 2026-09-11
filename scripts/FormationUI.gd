@@ -40,6 +40,7 @@ func create_slot_card(pos: int) -> Control:
 	card.script = SlotCardScript
 	
 	var vbox = VBoxContainer.new()
+	vbox.name = "VBox"
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.set_anchors_preset(PRESET_FULL_RECT)
 	card.add_child(vbox)
