@@ -1,0 +1,110 @@
+# 🎮 NineGridCardGame 项目状态与架构说明文档
+
+> **本文档供开发者及 AI 助手快速了解项目架构、技术细节及当前进度。**
+> 只要拉取最新 Git 代码并阅读本文档，即可无缝接手续写本项目。
+
+---
+
+## 📌 1. 项目概览 (Project Overview)
+
+- **项目名称**：`NineGridCardGame`（傲视天地风格 3x3 九宫格卡牌回合制 Web / 桌面游戏）
+- **引擎版本**：Godot 4.6.1（GDScript 开发）
+- **项目绝对路径**：`D:\DSHworkspace\NineGridCardGame`
+- **引擎可执行文件路径**：`C:\Users\liuhuan\Desktop\Godot_v4.6.1-stable_win64.exe`
+- **主场景入口**：`res://scenes/LoginUI.tscn`
+- **存档路径**：`user://accounts.json`（真实磁盘路径如 `%APPDATA%\Godot\app_userdata\NineGridCardGame\accounts.json`）
+
+---
+
+## ⚡ 2. 核心游戏机制与公式 (Core Game Mechanics)
+
+### 2.1 英雄与兵种解耦（7:3 复合属性）
+- **属性叠加公式**：
+  $$	ext{最终战斗属性} = 	ext{英雄基础属性} 	imes 0.7 + 	ext{兵种属性} 	imes 0.3$$
+  - 计算对象包含：普通攻击（Atk）、普通防御（Def）、战法攻击（SAtk）、战法防御（SDef）。
+- **兵种专属闪避率 (MISS)**：
+  - 闪避判定绑定在兵种上，战斗中受击方独立触发：
+    - 弓兵 (Archer)：20%
+    - 鼓手 (Drummer)：15%
+    - 骑兵 (Cavalry)：10%
+    - 策士 (Tactician)：8%
+    - 步兵 (Infantry)：5%
+- **兵种技能与动画**：
+  - 兵种关联技能类型与动画标签（`slash` 斩击, `stomp` 践踏, `thrust` 突刺, `inspire` 鼓舞/加士气, `fire` 策略火攻）。
+
+### 2.2 九宫格布阵 (3x3 Formation)
+- 3x3 网格阵型，最多可上阵 5 名英雄。
+- 英雄卡牌以 3:4 宽高比展示，支持从下方 1x4 滚动英雄池**拖拽（Drag & Drop）** 上阵或调整位置。
+- 在英雄池或布阵格中**双击卡牌**，触发 `HeroDetailModal` 弹窗。
+
+### 2.3 5v5 回合制战斗 (Battle System)
+- **行动顺序**：根据单位的速度（Speed）高低决定出手先后。
+- **目标寻敌**：优先攻击对向前排目标；前排倒下后依次向后排寻找。
+- **士气与技能**：普攻与受击积攒士气（Morale），士气满 100 释放大招/战法。
+- **兵力数量视觉**：受击时显示兵力减损，单位下方带有动态兵力数量显示（随当前 HP / 最大 HP 缩放）。
+- **战斗日志**：右侧 RichTextLabel 显示详细战况，带平滑自动滚动（底层 `await process_frame` 延迟设置 `scroll_vertical`）。
+
+### 2.4 资源与升级系统 (Progression)
+- **战斗结算**：胜利获得 +100 金币、+100 共享经验池（Exp Pool）。
+- **英雄升级**：在英雄详情弹窗中消耗经验池手动升级英雄，消耗公式为 `升级费用 = 当前等级 * 100`。
+
+### 2.5 多账号与存档系统 (Save System)
+- 支持多账号注册与登录（默认测试账号：`admin` / `123456`）。
+- 账号数据隔离存储于 `user://accounts.json`。
+- 战斗与抽卡过程在内存数据中实时更新，玩家点击主界面右上角“💾 保存存档”按钮后将内存持久化写回 JSON 文件。
+
+---
+
+## 📁 3. 项目结构与文件职责 (Project Architecture)
+
+```
+NineGridCardGame/
+├── project.godot               # Godot 项目配置，主场景指向 LoginUI.tscn
+├── PROJECT_STATUS.md           # 本说明文档
+├── data/                       # CSV 数据配置表（全部为 UTF-8 BOM 格式，兼容 Excel/WPS）
+│   ├── heroes.csv              # 英雄基础模版（属性、品质、默认兵种 ID、初始技能等）
+│   ├── troops.csv              # 兵种配置（闪避率、攻击类型、技能类型、动画标签、属性加成）
+│   └── enemies.csv             # 敌方阵型排布与难度属性倍率 (stat_mult)
+├── scripts/                    # 核心 GDScript 脚本目录
+│   ├── GameData.gd             # 单例组件：自动解析 UTF-8 BOM CSV、账号登录/注册/存档 JSON I/O、7:3 复合属性计算 (calc_combined_stats)、英雄升级
+│   ├── LoginUI.gd              # 登录与注册界面交互逻辑
+│   ├── MainUI.gd               # 主界面顶部栏（玩家名、金币、经验池、保存存档、退出登录）
+│   ├── FormationUI.gd          # 3x3 拖拽布阵界面逻辑
+│   ├── HeroDetailModal.gd      # 英雄详情弹窗逻辑（展示 7:3 复合属性分解及升级）
+│   ├── GachaUI.gd              # 招募抽卡界面逻辑（单抽/十连抽）
+│   └── BattleUI.gd             # 战斗主场景（行动次序、寻敌、MISS 判定、兵种大招动画、战斗日志平滑滚动）
+└── scenes/                     # 对应的场景文件 (.tscn)
+    ├── LoginUI.tscn
+    ├── MainUI.tscn
+    ├── FormationUI.tscn
+    ├── HeroDetailModal.tscn
+    ├── GachaUI.tscn
+    └── BattleUI.tscn
+```
+
+---
+
+## 📊 4. CSV 配置表格式说明
+
+为防止 Excel 或 WPS 打开 CSV 时出现中文乱码，所有 CSV 文件必须保存为 **带有 BOM 的 UTF-8（UTF-8 with BOM / `\ufeff`）** 格式。`GameData.gd` 已内置自动剥离 BOM 头字节的处理逻辑。
+
+- **`heroes.csv` 字段**：`id, name, quality, troop_id, hp, atk, def, satk, sdef, speed, morale, skill_id`
+- **`troops.csv` 字段**：`id, name, type, evade_rate, atk_type, skill_type, anim_tag, hp_add, atk_add, def_add, satk_add, sdef_add, speed_add`
+- **`enemies.csv` 字段**：`difficulty, name, slot_0_hero, slot_1_hero, ... slot_8_hero, stat_mult`
+
+---
+
+## 🛠️ 5. 已解决的重要避坑问题 (Technical Pitfalls Resolved)
+
+1. **暗灰色遮挡面板**：`MainUI.tscn` 中的 `ContentPanel` 已从 `PanelContainer` 替换为 `MarginContainer`，避免自带的半透明暗色背景遮挡子界面。
+2. **战斗日志无法滚动到底部**：`RichTextLabel` 须勾选 `fit_content = true` 并取消 `scroll_active`，在插入日志文本后调用 `await get_tree().process_frame`（延迟 2 帧）再设置 `scroll_vertical = 99999`。
+3. **HeroDetailModal 信息加载中...**：已修正 `HeroDetailModal.tscn` 中的节点引用路径（如 `NameQualityLbl`），并在 `setup()` 中加入 `is_node_ready()` 保护，确保安全赋值。
+4. **Excel 导出 CSV 乱码**：通过 Python/VS Code 将 CSV 转为 UTF-8 BOM 编码，并在 `GameData.gd` 中解析时自动清除 `\ufeff` 前缀。
+
+---
+
+## 🎯 6. 接续开发建议 (Next Steps)
+
+1. **关卡/副本系统**：对接 `enemies.csv` 中不同难度（Easy / Normal / Hard / Nightmare）的关卡，提供通关进度解锁。
+2. **装备与兵种科技系统**：为英雄增加装备位，或为兵种增加科技树研磨提升。
+3. **特效与音效增强**：引入更多技能音效与攻击粒子动画。
