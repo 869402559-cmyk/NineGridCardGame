@@ -37,6 +37,11 @@ func update_resources() -> void:
 	exp_label.text = "✨ 经验池: " + str(GameData.player_exp_pool)
 
 func _on_save_pressed() -> void:
+	if GameData.is_in_battle:
+		btn_save.text = "⚠️ 战斗中不可保存"
+		await get_tree().create_timer(1.5).timeout
+		btn_save.text = "💾 保存存档"
+		return
 	GameData.save_current_progress()
 
 func _on_manage_acc_pressed() -> void:

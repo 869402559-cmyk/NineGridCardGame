@@ -23,6 +23,7 @@ var player_formation: Dictionary = {
 }
 var cleared_difficulties: Array = [] # 记录通关记录，如 ["Easy", "Normal"]
 var has_unsaved_changes: bool = false
+var is_in_battle: bool = false # 标记当前是否正在战斗中（战斗中禁用保存按钮）
 
 # ---------------------------------------------------
 # 五级品质视觉与外观配置 (UR, SSR, SR, R, N)
@@ -304,6 +305,9 @@ func load_player_save_from_account(save_data: Dictionary) -> void:
 # 3. 游戏内主动【保存】按钮机制 (写入 JSON)
 # ---------------------------------------------------
 func save_current_progress() -> void:
+	if is_in_battle:
+		emit_signal("save_status_changed", "⚠️ 战斗进行中，无法保存存档！")
+		return
 	if current_account == "":
 		return
 	var accounts = load_all_accounts_data()

@@ -322,6 +322,7 @@ func _on_start_battle() -> void:
 	is_battle_running = true
 	battle_round = 1
 	is_fast_simulating = false
+	GameData.is_in_battle = true # 设置战斗中标记
 	log_text.text = "[color=yellow]=== 战斗正式开始！难度：" + diff_select.get_item_text(diff_select.selected) + " ===[/color]"
 	
 	start_auto_battle_loop()
@@ -731,6 +732,7 @@ func check_battle_over() -> bool:
 			
 	if not player_alive or not enemy_alive:
 		is_battle_running = false
+		GameData.is_in_battle = false # 战斗结束取消标记
 		
 		if player_alive:
 			append_log("
@@ -837,8 +839,14 @@ func append_log(msg: String) -> void:
 	call_deferred("_scroll_log_to_bottom")
 
 func _scroll_log_to_bottom() -> void:
+	if not is_inside_tree() or get_tree() == null:
+		return
 	await get_tree().process_frame
+	if not is_inside_tree() or get_tree() == null:
+		return
 	await get_tree().process_frame
+	if not is_inside_tree() or get_tree() == null:
+		return
 	log_scroll.scroll_vertical = int(log_text.get_content_height()) + 99999
 	var v_bar = log_scroll.get_v_scroll_bar()
 	if v_bar:
