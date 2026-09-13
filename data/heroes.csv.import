@@ -6,10 +6,10 @@ uid="uid://cjhg1l0d7aqxn"
 
 [deps]
 
-files=["res://data/heroes.name.translation", "res://data/heroes.quality.translation", "res://data/heroes.troop.translation", "res://data/heroes.hp.translation", "res://data/heroes.atk.translation", "res://data/heroes.def.translation", "res://data/heroes.satk.translation", "res://data/heroes.sdef.translation", "res://data/heroes.spd.translation", "res://data/heroes.color.translation"]
+files=["res://data/heroes.name.translation", "res://data/heroes.quality.translation", "res://data/heroes.troop.translation", "res://data/heroes.hp.translation", "res://data/heroes.atk.translation", "res://data/heroes.def.translation", "res://data/heroes.satk.translation", "res://data/heroes.sdef.translation", "res://data/heroes.spd.translation", "res://data/heroes.color.translation", "res://data/heroes.source.translation", "res://data/heroes.source.translation"]
 
 source_file="res://data/heroes.csv"
-dest_files=["res://data/heroes.name.translation", "res://data/heroes.quality.translation", "res://data/heroes.troop.translation", "res://data/heroes.hp.translation", "res://data/heroes.atk.translation", "res://data/heroes.def.translation", "res://data/heroes.satk.translation", "res://data/heroes.sdef.translation", "res://data/heroes.spd.translation", "res://data/heroes.color.translation"]
+dest_files=["res://data/heroes.name.translation", "res://data/heroes.quality.translation", "res://data/heroes.troop.translation", "res://data/heroes.hp.translation", "res://data/heroes.atk.translation", "res://data/heroes.def.translation", "res://data/heroes.satk.translation", "res://data/heroes.sdef.translation", "res://data/heroes.spd.translation", "res://data/heroes.color.translation", "res://data/heroes.source.translation", "res://data/heroes.source.translation"]
 
 [params]
 

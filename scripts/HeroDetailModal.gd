@@ -97,7 +97,18 @@ func refresh_display() -> void:
 "
 	info_bbcode += "• 闪避率: [color=green]" + str(int(combined["evade_rate"] * 100)) + "%[/color] (固定只由兵种决定)
 "
-	info_bbcode += "• 攻击方式: " + combined["atk_type"] + "
+	var atk_mode_str = combined.get("atk_mode", "single")
+	var atk_mode_name = "单体攻击"
+	match atk_mode_str:
+		"single": atk_mode_name = "单体攻击"
+		"row_line": atk_mode_name = "纵向/一字长蛇"
+		"col_line": atk_mode_name = "横向/横扫"
+		"backline_priority": atk_mode_name = "后排突袭"
+		"all_targets": atk_mode_name = "全屏/全体攻击"
+		"all_allies": atk_mode_name = "友方全体"
+		"lowest_hp_ally": atk_mode_name = "友方单体救治"
+		
+	info_bbcode += "• 攻击方式: " + atk_mode_name + "
 "
 	info_bbcode += "• 兵种战法: [color=orange]" + combined["skill_name"] + "[/color]
 "

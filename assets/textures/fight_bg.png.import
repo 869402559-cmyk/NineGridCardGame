@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8fkenxt3r5an"
-path="res://.godot/imported/fight_bg.png-62cbff119c41f905e71488d7ec86a82e.ctex"
+path="res://.godot/imported/fight_bg.png-db86de0bc973641f3776bda1559643d7.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/textures/fight_bg.png"
-dest_files=["res://.godot/imported/fight_bg.png-62cbff119c41f905e71488d7ec86a82e.ctex"]
+dest_files=["res://.godot/imported/fight_bg.png-db86de0bc973641f3776bda1559643d7.ctex"]
 
 [params]
 

@@ -1,0 +1,126 @@
+[gd_scene load_steps=2 format=3 uid="uid://c3tavernui_scene_01"]
+
+[ext_resource type="Script" path="res://scripts/TavernUI.gd" id="1_tavern"]
+
+[node name="TavernUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_tavern")
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.08, 0.1, 0.95)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="TopBar" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Title" type="Label" parent="VBox/TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+text = "🍺 招贤酒馆 (Tavern)"
+
+[node name="FilterLabel" type="Label" parent="VBox/TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "品质筛选:"
+
+[node name="QualityFilter" type="OptionButton" parent="VBox/TopBar"]
+custom_minimum_size = Vector2(100, 32)
+layout_mode = 2
+
+[node name="InfoLbl" type="Label" parent="VBox/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "当前金币: 0 | 当前威望: 0"
+horizontal_alignment = 2
+
+[node name="BtnClose" type="Button" parent="VBox/TopBar"]
+custom_minimum_size = Vector2(90, 32)
+layout_mode = 2
+text = "返回 (Esc)"
+
+[node name="TabContainer" type="TabContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="初始余将" type="MarginContainer" parent="VBox/TabContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Scroll" type="ScrollContainer" parent="VBox/TabContainer/初始余将"]
+layout_mode = 2
+
+[node name="Grid" type="GridContainer" parent="VBox/TabContainer/初始余将/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+columns = 4
+
+[node name="关卡降将" type="MarginContainer" parent="VBox/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Scroll" type="ScrollContainer" parent="VBox/TabContainer/关卡降将"]
+layout_mode = 2
+
+[node name="Grid" type="GridContainer" parent="VBox/TabContainer/关卡降将/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+columns = 4
+
+[node name="威望名将" type="MarginContainer" parent="VBox/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Scroll" type="ScrollContainer" parent="VBox/TabContainer/威望名将"]
+layout_mode = 2
+
+[node name="Grid" type="GridContainer" parent="VBox/TabContainer/威望名将/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+columns = 4

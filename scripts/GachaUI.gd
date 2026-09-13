@@ -49,7 +49,10 @@ func perform_single_draw() -> Dictionary:
 		
 	var pool = []
 	for key in GameData.HERO_TEMPLATES.keys():
-		if GameData.HERO_TEMPLATES[key]["quality"] == quality:
+		var tmpl = GameData.HERO_TEMPLATES[key]
+		var src_type = tmpl.get("source_type", "gacha")
+		# 严格筛选：只有源类型为 gacha 的武将才允许进入酒馆抽卡池
+		if tmpl.get("quality", "N") == quality and (src_type == "" or src_type == "gacha"):
 			pool.append(key)
 			
 	if pool.size() == 0:

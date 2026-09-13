@@ -6,10 +6,10 @@ uid="uid://b4gvt2pc6qmsf"
 
 [deps]
 
-files=["res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.stat.translation"]
+files=["res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.stat.translation"]
 
 source_file="res://data/enemies.csv"
-dest_files=["res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.stat.translation"]
+dest_files=["res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.pos.translation", "res://data/enemies.stat.translation"]
 
 [params]
 

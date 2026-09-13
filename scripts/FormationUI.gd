@@ -6,14 +6,20 @@ extends Control
 @onready var btn_clear: Button = $HBox/LeftPanel/TitleBox/BtnClear
 @onready var grid_container: GridContainer = $HBox/RightPanel/GridContainer
 @onready var grid_title: Label = $HBox/RightPanel/GridTitle
+@onready var option_formation: OptionButton = $HBox/RightPanel/FormationSelectBox/OptionFormation
+@onready var formation_bonus_label: Label = $HBox/RightPanel/FormationBonusLabel
 
 var slot_cards: Array = [] # 1..9 slot controls
+var formation_keys: Array = [] # 按顺序存储阵型 key
 
 func _ready() -> void:
 	btn_auto.pressed.connect(_on_auto_fill)
 	btn_clear.pressed.connect(_on_clear)
 	if btn_dismiss:
-		btn_dismiss.pressed.connect(_on_open_dismiss_modal)
+		btn_dismiss.text = "🚪 武将下野"
+		btn_dismiss.pressed.connect(_on_dismiss_pressed)
+	
+	init_formation_options()
 	
 	# 设置左侧整个面板区域（LeftPanel）为显式下阵目标（精准接收拖回的单个卡牌）
 	var left_panel = $HBox/LeftPanel
@@ -21,6 +27,39 @@ func _ready() -> void:
 	
 	init_formation_slots()
 	refresh_all()
+
+func init_formation_options() -> void:
+	option_formation.clear()
+	formation_keys.clear()
+	
+	var select_index = 0
+	var idx = 0
+	for f_key in BattleCalculator.FORMATIONS.keys():
+		var f_info = BattleCalculator.FORMATIONS[f_key]
+		option_formation.add_item(f_info["name"])
+		formation_keys.append(f_key)
+		if f_key == GameData.current_formation_type:
+			select_index = idx
+		idx += 1
+		
+	option_formation.select(select_index)
+	if not option_formation.item_selected.is_connected(_on_formation_selected):
+		option_formation.item_selected.connect(_on_formation_selected)
+
+func _on_formation_selected(index: int) -> void:
+	if index >= 0 and index < formation_keys.size():
+		var selected_key = formation_keys[index]
+		if selected_key != GameData.current_formation_type:
+			GameData.current_formation_type = selected_key
+			GameData.has_unsaved_changes = true
+			
+			# 自动弹出/清理新阵型不包含的非法槽位上的武将
+			var valid_positions = BattleCalculator.FORMATIONS[selected_key].get("positions", [1, 2, 3, 5, 8])
+			for pos in range(1, 10):
+				if not pos in valid_positions and GameData.player_formation.get(pos) != null:
+					GameData.player_formation[pos] = null
+					
+			refresh_all()
 
 func init_formation_slots() -> void:
 	for child in grid_container.get_children():
@@ -80,7 +119,7 @@ func refresh_left_hero_grid() -> void:
 		
 	var equipped_uuids = []
 	for pos in range(1, 10):
-		var uid = GameData.player_formation[pos]
+		var uid = GameData.player_formation.get(pos, null)
 		if uid != null:
 			equipped_uuids.append(uid)
 			
@@ -166,6 +205,26 @@ func create_hero_portrait_card(hero: Dictionary, is_equipped: bool) -> Control:
 	return card
 
 func refresh_right_formation_grid() -> void:
+	var current_form = BattleCalculator.FORMATIONS.get(GameData.current_formation_type, {})
+	var valid_positions = current_form.get("positions", [1, 2, 3, 5, 8])
+	var form_name = current_form.get("name", "鱼鳞阵")
+	var bonuses = current_form.get("bonuses", {})
+	
+	# 更新阵型属性加成文本提示
+	var bonus_texts = []
+	if bonuses.has("atk_pct"): bonus_texts.append("物攻+" + str(int(bonuses["atk_pct"] * 100)) + "%")
+	if bonuses.has("def_pct"): bonus_texts.append("物防+" + str(int(bonuses["def_pct"] * 100)) + "%")
+	if bonuses.has("satk_pct"): bonus_texts.append("战攻+" + str(int(bonuses["satk_pct"] * 100)) + "%")
+	if bonuses.has("sdef_pct"): bonus_texts.append("战防+" + str(int(bonuses["sdef_pct"] * 100)) + "%")
+	if bonuses.has("crit_rate"): bonus_texts.append("暴击率+" + str(int(bonuses["crit_rate"] * 100)) + "%")
+	if bonuses.has("block_rate"): bonus_texts.append("格挡率+" + str(int(bonuses["block_rate"] * 100)) + "%")
+	if bonuses.has("evade_rate"): bonus_texts.append("闪避率+" + str(int(bonuses["evade_rate"] * 100)) + "%")
+	if bonuses.has("penetrate_rate"): bonus_texts.append("物穿+" + str(int(bonuses["penetrate_rate"] * 100)) + "%")
+	if bonuses.has("spd_pct"): bonus_texts.append("速度+" + str(int(bonuses["spd_pct"] * 100)) + "%")
+	
+	if formation_bonus_label:
+		formation_bonus_label.text = "【" + form_name + "加成】" + "  ".join(bonus_texts)
+	
 	var count = 0
 	for pos in range(1, 10):
 		var card = slot_cards[pos - 1] as PanelContainer
@@ -174,8 +233,27 @@ func refresh_right_formation_grid() -> void:
 		var name_lbl = vbox.get_node("NameLbl") as Label
 		var img = vbox.get_node("Avatar") as TextureRect
 		
-		var hero_uuid = GameData.player_formation[pos]
-		if hero_uuid != null:
+		var is_valid_pos = pos in valid_positions
+		var hero_uuid = GameData.player_formation.get(pos, null)
+		
+		if not is_valid_pos:
+			# 阵型禁用的槽位
+			var style = StyleBoxFlat.new()
+			style.bg_color = Color(0.08, 0.08, 0.1, 0.85)
+			style.set_corner_radius_all(6)
+			style.border_color = Color(0.2, 0.2, 0.22)
+			style.border_width_bottom = 1
+			style.border_width_left = 1
+			style.border_width_right = 1
+			style.border_width_top = 1
+			card.add_theme_stylebox_override("panel", style)
+			
+			pos_lbl.text = str(pos) + "号位"
+			pos_lbl.add_theme_color_override("font_color", Color(0.3, 0.3, 0.3))
+			name_lbl.text = "🔒 禁用槽"
+			name_lbl.add_theme_color_override("font_color", Color(0.4, 0.4, 0.45))
+			img.texture = null
+		elif hero_uuid != null:
 			var hero = GameData.get_hero_by_uuid(hero_uuid)
 			if not hero.is_empty():
 				count += 1
@@ -190,7 +268,7 @@ func refresh_right_formation_grid() -> void:
 				style.border_color = q_cfg["border_color"]
 				card.add_theme_stylebox_override("panel", style)
 				
-				var combined = GameData.calc_combined_stats(hero)
+				var combined = GameData.calc_combined_stats(hero, GameData.current_formation_type)
 				pos_lbl.text = str(pos) + "号位 · Lv." + str(hero.get("level", 1))
 				pos_lbl.add_theme_color_override("font_color", Color(0.9, 0.85, 0.5))
 				name_lbl.text = "[" + hero.get("quality", "N") + "] " + hero["name"]
@@ -214,18 +292,22 @@ func refresh_right_formation_grid() -> void:
 				img.texture = null
 		else:
 			var style = StyleBoxFlat.new()
-			style.bg_color = Color(0.12, 0.12, 0.15, 0.7)
+			style.bg_color = Color(0.12, 0.14, 0.18, 0.8)
 			style.set_corner_radius_all(6)
-			style.border_color = Color(0.25, 0.25, 0.3)
+			style.border_color = Color(0.3, 0.5, 0.4) # 可上阵槽位高亮绿色边框
+			style.border_width_bottom = 2
+			style.border_width_left = 2
+			style.border_width_right = 2
+			style.border_width_top = 2
 			card.add_theme_stylebox_override("panel", style)
 			
 			pos_lbl.text = str(pos) + "号位"
-			pos_lbl.add_theme_color_override("font_color", Color(0.4, 0.35, 0.25))
-			name_lbl.text = "(空位)"
-			name_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+			pos_lbl.add_theme_color_override("font_color", Color(0.4, 0.7, 0.5))
+			name_lbl.text = "(可上阵)"
+			name_lbl.add_theme_color_override("font_color", Color(0.4, 0.8, 0.5))
 			img.texture = null
 			
-	grid_title.text = "玩家九宫格阵型 (已上阵 " + str(count) + "/5)"
+	grid_title.text = "【" + form_name + "】玩家九宫格阵型 (已上阵 " + str(count) + "/5)"
 
 func open_hero_detail(uuid: String) -> void:
 	var modal_scene = load("res://scenes/HeroDetailModal.tscn")
@@ -235,13 +317,69 @@ func open_hero_detail(uuid: String) -> void:
 		modal.setup(uuid)
 		modal.updated.connect(refresh_all)
 
-func _on_open_dismiss_modal() -> void:
-	var modal_scene = load("res://scenes/DismissModal.tscn")
-	if modal_scene:
-		var modal = modal_scene.instantiate()
-		add_child(modal)
-		if modal.has_signal("dismissed"):
-			modal.dismissed.connect(refresh_all)
+func _on_dismiss_pressed() -> void:
+	var dialog = AcceptDialog.new()
+	dialog.title = "🚪 武将下野 (返回酒馆)"
+	dialog.size = Vector2i(540, 380)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	
+	var tip = Label.new()
+	tip.text = "注意：只有 1 级且不在阵型中的武将允许下野返回酒馆。已升级武将请先去【洗练】重置为 1 级！"
+	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tip.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+	vbox.add_child(tip)
+	
+	var scroll = ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(0, 240)
+	var list_vbox = VBoxContainer.new()
+	list_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(list_vbox)
+	vbox.add_child(scroll)
+	
+	for hero in GameData.player_heroes:
+		var hbox = HBoxContainer.new()
+		var hname = Label.new()
+		var q_cfg = GameData.get_quality_config(hero.get("quality", "N"))
+		hname.text = "[" + hero.get("quality", "N") + "] " + hero.get("name", "") + " (Lv." + str(hero.get("level", 1)) + ")"
+		hname.add_theme_color_override("font_color", q_cfg.get("color", Color.WHITE))
+		hname.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hbox.add_child(hname)
+		
+		var uuid = hero.get("uuid", "")
+		var is_in_form = false
+		for pos in GameData.player_formation.keys():
+			if GameData.player_formation[pos] == uuid:
+				is_in_form = true
+				break
+				
+		var btn = Button.new()
+		if GameData.player_heroes.size() <= 1:
+			btn.text = "只剩最后1人"
+			btn.disabled = true
+		elif is_in_form:
+			btn.text = "在阵中"
+			btn.disabled = true
+		elif hero.get("level", 1) > 1:
+			btn.text = "请先洗练降级"
+			btn.disabled = true
+		else:
+			btn.text = "确认下野"
+			btn.pressed.connect(func():
+				var res = GameData.dismiss_hero(uuid)
+				if res == "OK":
+					dialog.queue_free()
+					refresh_all()
+				else:
+					tip.text = res
+			)
+		hbox.add_child(btn)
+		list_vbox.add_child(hbox)
+		
+	dialog.add_child(vbox)
+	add_child(dialog)
+	dialog.popup_centered()
 
 func _on_auto_fill() -> void:
 	GameData.auto_fill_formation()
@@ -343,7 +481,11 @@ class SlotCardScript extends PanelContainer:
 		}
 
 	func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
-		return typeof(data) == TYPE_DICTIONARY and data.get("type") == "hero_card"
+		if typeof(data) != TYPE_DICTIONARY or data.get("type") != "hero_card":
+			return false
+		var target_slot = get_meta("slot_pos", 0)
+		var valid_positions = BattleCalculator.FORMATIONS.get(GameData.current_formation_type, {}).get("positions", [1, 2, 3, 5, 8])
+		return target_slot in valid_positions
 
 	func _drop_data(_at_position: Vector2, data: Variant) -> void:
 		if typeof(data) != TYPE_DICTIONARY or data.get("type") != "hero_card":

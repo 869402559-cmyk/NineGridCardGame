@@ -73,10 +73,31 @@ layout_mode = 2
 size_flags_horizontal = 3
 alignment = 1
 
+[node name="FormationSelectBox" type="HBoxContainer" parent="HBox/RightPanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="SelectLabel" type="Label" parent="HBox/RightPanel/FormationSelectBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "当前阵型："
+
+[node name="OptionFormation" type="OptionButton" parent="HBox/RightPanel/FormationSelectBox"]
+custom_minimum_size = Vector2(140, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+
 [node name="GridTitle" type="Label" parent="HBox/RightPanel"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 20
 text = "玩家九宫格阵型 (已上阵 0/5)"
+horizontal_alignment = 1
+
+[node name="FormationBonusLabel" type="Label" parent="HBox/RightPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 14
+text = "阵型加成：物理攻击+15%，物理防御+10%，暴击率+5%"
 horizontal_alignment = 1
 
 [node name="GridContainer" type="GridContainer" parent="HBox/RightPanel"]

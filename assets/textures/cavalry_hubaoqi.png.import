@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d3pipbqq0aro4"
-path="res://.godot/imported/hobaoqi_idle.png-63450b601986cbb0e6cbd4e3d65e1512.ctex"
+uid="uid://dwn7ks0x838yg"
+path="res://.godot/imported/cavalry_hubaoqi.png-70467f158ff8f98c0b7babc1024db075.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/hobaoqi_idle.png"
-dest_files=["res://.godot/imported/hobaoqi_idle.png-63450b601986cbb0e6cbd4e3d65e1512.ctex"]
+source_file="res://assets/textures/cavalry_hubaoqi.png"
+dest_files=["res://.godot/imported/cavalry_hubaoqi.png-70467f158ff8f98c0b7babc1024db075.ctex"]
 
 [params]
 

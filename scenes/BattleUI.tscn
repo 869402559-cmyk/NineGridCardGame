@@ -43,20 +43,22 @@ theme_override_constants/separation = 15
 alignment = 2
 
 [node name="DiffLabel" type="Label" parent="VBox/TopControls"]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 0.75, 1)
 theme_override_font_sizes/font_size = 16
 text = "电脑难度:"
 
 [node name="DiffSelect" type="OptionButton" parent="VBox/TopControls"]
+visible = false
 custom_minimum_size = Vector2(130, 36)
 layout_mode = 2
 
-[node name="BtnStart" type="Button" parent="VBox/TopControls"]
+[node name="BtnSpeed" type="Button" parent="VBox/TopControls"]
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "自动战斗"
+text = "⏩ 速度: 正常"
 
 [node name="BtnSkip" type="Button" parent="VBox/TopControls"]
 custom_minimum_size = Vector2(120, 36)
@@ -67,42 +69,32 @@ text = "跳过战斗"
 [node name="MainLayout" type="HBoxContainer" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 15
+theme_override_constants/separation = 10
 
 [node name="BattleBoard" type="HBoxContainer" parent="VBox/MainLayout"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 15
+theme_override_constants/separation = 120
 alignment = 1
 
 [node name="PlayerGrid" type="GridContainer" parent="VBox/MainLayout/BattleBoard"]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 columns = 3
-
-[node name="VsLabel" type="Label" parent="VBox/MainLayout/BattleBoard"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.2, 0.2, 0.8)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 32
-text = "VS"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="EnemyGrid" type="GridContainer" parent="VBox/MainLayout/BattleBoard"]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 columns = 3
 
 [node name="LogPanel" type="PanelContainer" parent="VBox/MainLayout"]
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 
 [node name="Margin" type="MarginContainer" parent="VBox/MainLayout/LogPanel"]
@@ -133,7 +125,7 @@ size_flags_vertical = 3
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
-text = "点击【自动战斗】观看完整对决，或点击【跳过战斗】瞬间模拟战果！"
+text = "进入关卡即刻自动交锋，可通过顶部【跳过战斗】瞬间结算结果！"
 
 [node name="FxLayer" type="Control" parent="."]
 layout_mode = 1

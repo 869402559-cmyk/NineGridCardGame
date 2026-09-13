@@ -1,0 +1,102 @@
+[gd_scene load_steps=2 format=3 uid="uid://c1a2m3p4a5i6"]
+
+[ext_resource type="Script" path="res://scripts/CampaignUI.gd" id="1_camp"]
+
+[node name="CampaignUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_camp")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 10.0
+offset_right = -15.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="TopHeader" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="ChapLabel" type="Label" parent="VBox/TopHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.6, 1)
+theme_override_font_sizes/font_size = 20
+text = "选择章节："
+
+[node name="OptionChapter" type="OptionButton" parent="VBox/TopHeader"]
+custom_minimum_size = Vector2(220, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+
+[node name="ChapDesc" type="Label" parent="VBox/TopHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.85, 1)
+theme_override_font_sizes/font_size = 14
+text = "苍天已死黄巾当立..."
+vertical_alignment = 1
+
+[node name="MapScroll" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+vertical_scroll_mode = 0
+
+[node name="MapHBox" type="HBoxContainer" parent="VBox/MapScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="StageDetailPanel" type="PanelContainer" parent="VBox"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+
+[node name="DetailBox" type="HBoxContainer" parent="VBox/StageDetailPanel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="InfoBox" type="VBoxContainer" parent="VBox/StageDetailPanel/DetailBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="LblStageTitle" type="Label" parent="VBox/StageDetailPanel/DetailBox/InfoBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_font_sizes/font_size = 18
+text = "请在上方卷轴地图中选择关卡节点"
+
+[node name="LblStageRewards" type="Label" parent="VBox/StageDetailPanel/DetailBox/InfoBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_font_sizes/font_size = 14
+text = "首通奖励：威望 +0 | 金币 +0 | 经验 +0"
+
+[node name="LblRecommend" type="Label" parent="VBox/StageDetailPanel/DetailBox/InfoBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "💡 提示：合理利用兵种克制与阵型可大幅降低推图难度"
+
+[node name="ActionBox" type="HBoxContainer" parent="VBox/StageDetailPanel/DetailBox"]
+layout_mode = 2
+alignment = 2
+
+[node name="BtnStartBattle" type="Button" parent="VBox/StageDetailPanel/DetailBox/ActionBox"]
+custom_minimum_size = Vector2(140, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
+theme_override_font_sizes/font_size = 18
+text = "⚔️ 开战"

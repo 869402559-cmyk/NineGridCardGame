@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bcoxs5o0rpm5h"
-path="res://.godot/imported/白马义从待机.png-9305b8cd6b74effd3c105d7f8d06757c.ctex"
+uid="uid://dkgmabklhi1bv"
+path="res://.godot/imported/machinery_piliche.png-a4dbbc576c83ea02279781ad6f7713a3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/baimayicong_idle.png"
-dest_files=["res://.godot/imported/白马义从待机.png-9305b8cd6b74effd3c105d7f8d06757c.ctex"]
+source_file="res://assets/textures/machinery_piliche.png"
+dest_files=["res://.godot/imported/machinery_piliche.png-a4dbbc576c83ea02279781ad6f7713a3.ctex"]
 
 [params]
 

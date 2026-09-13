@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bo8n3ojmnmvw1"
-path="res://.godot/imported/hobaoqi_dead.png-9345d44f6d86dcc12c74d1fe17bab219.ctex"
+uid="uid://b8wvxrql8naul"
+path="res://.godot/imported/cavalry_baima.png-ddc17c33f53bf3a9edbe638b71f5a063.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/hobaoqi_dead.png"
-dest_files=["res://.godot/imported/hobaoqi_dead.png-9345d44f6d86dcc12c74d1fe17bab219.ctex"]
+source_file="res://assets/textures/cavalry_baima.png"
+dest_files=["res://.godot/imported/cavalry_baima.png-ddc17c33f53bf3a9edbe638b71f5a063.ctex"]
 
 [params]
 
